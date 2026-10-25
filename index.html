@@ -1663,18 +1663,13 @@ if (canHover) {
   .term-fab{
     position:fixed;right:18px;bottom:18px;z-index:120;
     width:77px;height:16px;border-radius:4px;
-    background:rgba(15,20,35,.5);border:1px solid rgba(255,255,255,.14);
+    background:transparent;border:none;
     color:var(--muted);font:600 12px ui-monospace,Menlo,Consolas,monospace;
     display:flex;align-items:center;justify-content:center;
     cursor:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
     transition:color .3s,border-color .3s,box-shadow .3s,transform .3s;
   }
-  .term-fab:hover{color:var(--fg);border-color:var(--accent2);box-shadow:0 0 16px rgba(255,255,255,.12);transform:translateY(-2px)}
-  @media(max-width:768px){
-    .term{left:12px;right:12px;width:auto;bottom:66px;height:min(420px,54dvh)}
-    .term-input{font-size:16px}
-    .term-fab{right:12px;bottom:12px;width:182px;height:42px}
-  }
+
   @media(prefers-reduced-motion:reduce){
     .term,.term-fab,.tl{transition:none;animation:none}
   }`;
@@ -1701,7 +1696,7 @@ if (canHover) {
 
   const fab = document.createElement('button');
   fab.className = 'term-fab';
-  fab.textContent = '2026 ©pds ';
+  fab.textContent = '©pds ';
   fab.setAttribute('aria-label', 'deschide terminalul');
   document.body.appendChild(fab);
 
