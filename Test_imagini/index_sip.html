@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaD-SIP Generator – Simulare</title>
+<style>
+  :root {
+    --bg-main: #0a1424;
+    --bg-sidebar: #0d1a2e;
+    --bg-panel: #132338;
+    --bg-input: #1a2f4a;
+    --border: #1e3a5f;
+    --text: #d4e4ff;
+    --text-muted: #8892a4;
+    --accent: #7eb8ff;
+    --accent-glow: rgba(126, 184, 255, 0.35);
+    --success: #7fffb2;
+    --warning: #ffeb3b;
+    --danger: #ff6b6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-main);
+    color: var(--text);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 260px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .sidebar-menu {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    padding: 6px 8px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .sidebar-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar-menu-btn:hover {
+    background: rgba(126, 184, 255, 0.1);
+    color: var(--accent);
+  }
+
+  .sidebar-submenu {
+    display: none;
+    flex-direction: column;
+    background: #1a2f4a;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 170px;
+    z-index: 1000;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .sidebar-submenu.open { display: flex; }
+
+  .sidebar-submenu-item {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 11px;
+    padding: 6px 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar-submenu-item:hover {
+    background: rgba(126, 184, 255, 0.15);
+    color: var(--warning);
+  }
+
+  .sidebar-header {
+    padding: 12px 16px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo {
+    width: 42px;
+    height: auto;
+    display: block;
+  }
+  #box {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .btn {
+    margin: 4px 12px;
+    padding: 8px 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .btn:hover {
+    background: #1a2f4a;
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+  .btn:active { transform: scale(0.98); }
+
+  .sidebar-matrix-wrapper {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    margin-top: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  #sidebar-matrix {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #progress-container {
+    padding: 10px 14px 16px;
+    margin-top: auto;
+  }
+  #progress-track {
+    height: 6px;
+    background: #1a2f4a;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #3b82f6, #7eb8ff);
+    border-radius: 3px;
+    transition: width 0.25s ease;
+  }
+  #progress-label {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1;
+    padding: 24px 32px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  select, input {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  select:focus, input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+  select { min-width: 180px; }
+  input { flex: 1; }
+
+  .input-prefix-wrapper {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .input-prefix {
+    padding: 8px 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+    border-right: 1px solid var(--border);
+  }
+  .input-prefix-wrapper input {
+    border: none;
+    background: transparent;
+    flex: 1;
+  }
+
+  #observatii { margin-bottom: 20px; }
+
+  #scan-summary {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0 0 14px 0;
+    min-height: 1.4em;
+  }
+
+  #results-container {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .panel {
+    flex: 1;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .panel.collapsed .scroll-box {
+    display: none;
+  }
+  .panel-title {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #162a42;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+  }
+  .panel-title:hover { color: var(--accent); }
+  .scroll-box {
+    padding: 12px 14px;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .panel-description { color: var(--text-muted); font-style: italic; }
+
+  .ext-entry {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.5);
+  }
+  .ext-name { display: block; color: var(--text); }
+  .ext-detail { display: block; color: var(--text-muted); font-size: 11px; }
+  .yellow { color: var(--warning); }
+  .ext-fix-link, .dup-delete-link {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 11px;
+  }
+  .ext-fixed { opacity: 0.55; }
+
+  /* Toggle buttons */
+  #theme-toggle, #lang-toggle {
+    position: fixed;
+    top: 8px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+    z-index: 1000;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #theme-toggle { right: 8px; }
+  #lang-toggle { right: 52px; }
+  #theme-toggle:hover, #lang-toggle:hover { color: var(--accent); }
+
+  /* Light theme overrides */
+  body.light {
+    --bg-main: #f0f4f8;
+    --bg-sidebar: #e2e8f0;
+    --bg-panel: #ffffff;
+    --bg-input: #ffffff;
+    --border: #cbd5e1;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --accent: #2563eb;
+    --accent-glow: rgba(37, 99, 235, 0.25);
+  }
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 7px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    color: var(--header-text);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+  /* ── Responsive: tablet ── */
+  @media (max-width: 900px) {
+    #results-container {
+      flex-direction: column;
+    }
+    #main {
+      padding: 16px 18px 28px;
+    }
+  }
+
+  /* ── Responsive: mobile ── */
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
+      height: auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    #sidebar {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-menu {
+      padding: 8px 8px 6px;
+      gap: 4px;
+    }
+
+    .sidebar-menu-btn,
+    .back-btn {
+      min-height: 40px;
+      font-size: 13px;
+    }
+
+    .sidebar-submenu {
+      position: static;
+      min-width: 100%;
+      box-shadow: none;
+      margin-top: 4px;
+    }
+
+    .sidebar-header {
+      padding: 10px 12px 6px;
+    }
+
+    .btn {
+      margin: 6px 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      min-height: 44px;
+    }
+
+    .sidebar-matrix-wrapper {
+      height: 72px;
+      margin-top: 6px;
+    }
+
+    #progress-container {
+      padding: 8px 12px 12px;
+    }
+
+    #main {
+      padding: 16px 12px 32px;
+      overflow: visible;
+      position: relative;
+    }
+
+    h2 {
+      font-size: 1.05rem;
+      margin-bottom: 12px;
+      padding-right: 96px;
+    }
+
+    #theme-toggle,
+    #lang-toggle {
+      top: 8px;
+      position: absolute;
+      width: 40px;
+      height: 40px;
+    }
+
+    #lang-toggle { right: 52px; }
+    #theme-toggle { right: 8px; }
+
+    .form-row {
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    select,
+    input {
+      font-size: 16px;
+      padding: 10px 12px;
+      min-height: 44px;
+      width: 100%;
+    }
+
+    select {
+      min-width: 0;
+    }
+
+    .input-prefix-wrapper {
+      width: 100%;
+      min-height: 44px;
+    }
+
+    .input-prefix {
+      font-size: 11px;
+      padding: 10px 8px;
+    }
+
+    #observatii {
+      width: 100% !important;
+      min-height: 44px;
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    #scan-summary {
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    #results-container {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .panel-title {
+      padding: 12px 14px;
+      min-height: 44px;
+      font-size: 14px;
+    }
+
+    .scroll-box {
+      max-height: 280px;
+      font-size: 13px;
+    }
+
+    .ext-name,
+    .ext-detail {
+      word-break: break-all;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .input-prefix {
+      font-size: 10px;
+    }
+    .sidebar-menu {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .back-btn {
+      justify-content: center;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sidebar-menu">
+    <div style="position: relative;">
+      <button class="sidebar-menu-btn" id="smenu-mentenanta-btn">⚙️ Utilitare</button>
+      <div class="sidebar-submenu" id="smenu-mentenanta">
+        <button class="sidebar-submenu-item" id="smenu-btn-pronom-update">Actualizare PRONOM</button>
+        <button class="sidebar-submenu-item" id="smenu-btn-pronom-version">Versiune PRONOM</button>
+        <button class="sidebar-submenu-item" id="smenu-btn-license-status">Status licență</button>
+        <hr style="margin: 4px 0; border: none; border-top: 1px solid #3a4253;">
+        <button class="sidebar-submenu-item" id="smenu-btn-devtools">Consola Dev</button>
+      </div>
+    </div>
+<button class="sidebar-menu-btn" id="smenu-btn-info">ℹ️ Despre</button>
+<a href="../index.html" class="back-btn" title="Înapoi">← Înapoi</a>
+  </div>
+
+  <header class="sidebar-header">
+    <div class="logo-container" id="btn-refresh" title="Refresh">
+ <img src="logo1.png" style="width: 40px; height: 40px; object-fit: contain;">
+    </div>
+    <div id="box">MaD-SIP generator</div>
+  </header>
+
+  <div class="btn" id="btn-formular">📝 Completare formular</div>
+  <div class="btn" id="btn-select-folder">📁 Selectează folder</div>
+  <div class="btn" id="btn-generate">⚙️ Generează SIP </div>
+
+  <div class="sidebar-matrix-wrapper">
+    <canvas id="sidebar-matrix"></canvas>
+  </div>
+
+  <div id="progress-container">
+    <div id="progress-track">
+      <div id="progress-bar"></div>
+    </div>
+    <span id="progress-label">0%</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <h2>Generare Pachet Transmitere</h2>
+
+  <button id="lang-toggle" title="English">🇬🇧 EN</button>
+  <button id="theme-toggle" title="Schimbă tema">🌓</button>
+
+  <div class="form-row">
+    <select id="judet">
+      <option value="" disabled selected hidden>Județ</option>
+      <option value="AB">AB - Alba</option>
+      <option value="AR">AR - Arad</option>
+      <option value="AG">AG - Argeș</option>
+      <option value="B">B - București</option>
+      <option value="BC">BC - Bacău</option>
+      <option value="BH">BH - Bihor</option>
+      <option value="BN">BN - Bistrița-Năsăud</option>
+      <option value="BR">BR - Brăila</option>
+      <option value="BT">BT - Botoșani</option>
+      <option value="BV">BV - Brașov</option>
+      <option value="BZ">BZ - Buzău</option>
+      <option value="CS">CS - Caraș-Severin</option>
+      <option value="CL">CL - Călărași</option>
+      <option value="CJ">CJ - Cluj</option>
+      <option value="CT">CT - Constanța</option>
+      <option value="CV">CV - Covasna</option>
+      <option value="DB">DB - Dâmbovița</option>
+      <option value="DJ">DJ - Dolj</option>
+      <option value="GL">GL - Galați</option>
+      <option value="GR">GR - Giurgiu</option>
+      <option value="GJ">GJ - Gorj</option>
+      <option value="HR">HR - Harghita</option>
+      <option value="HD">HD - Hunedoara</option>
+      <option value="IL">IL - Ialomița</option>
+      <option value="IS">IS - Iași</option>
+      <option value="IF">IF - Ilfov</option>
+      <option value="MM">MM - Maramureș</option>
+      <option value="MH">MH - Mehedinți</option>
+      <option value="MS">MS - Mureș</option>
+      <option value="NT">NT - Neamț</option>
+      <option value="OT">OT - Olt</option>
+      <option value="PH">PH - Prahova</option>
+      <option value="SJ">SJ - Sălaj</option>
+      <option value="SM">SM - Satu Mare</option>
+      <option value="SB">SB - Sibiu</option>
+      <option value="SV">SV - Suceava</option>
+      <option value="TR">TR - Teleorman</option>
+      <option value="TM">TM - Timiș</option>
+      <option value="TL">TL - Tulcea</option>
+      <option value="VS">VS - Vaslui</option>
+      <option value="VL">VL - Vâlcea</option>
+      <option value="VN">VN - Vrancea</option>
+    </select>
+
+    <div class="input-prefix-wrapper">
+      <span class="input-prefix"><i>Nr. Pachet (din 5 cifre)</i>: FD-</span>
+      <input id="volum" type="text" placeholder="00001" maxlength="5" minlength="5"
+             pattern="[0-9]{5}" inputmode="numeric" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <input id="emitent" placeholder="Emitent (ex: SJAN Timiș)">
+    <input id="fond" placeholder="Fond (ex: Primăria Municipiului Timișoara)">
+  </div>
+
+  <input id="observatii" placeholder="Observații (opțional)" style="width:100%;">
+
+  <h2>Rezultate scanare</h2>
+  <p id="scan-summary"></p>
+
+  <div id="results-container">
+    <div id="left-panel" class="panel collapsed">
+      <h3 class="panel-title" data-target="ext-results">Extensii suspecte</h3>
+      <div id="ext-results" class="scroll-box">
+        <span class="panel-description"><i>
+          Fișierele sunt identificate prin semnătură binară folosind Siegfried (baza PRONOM)
+          și comparate cu extensia declarată.<br>
+          Discrepanțele detectate sunt listate aici și pot fi corectate automat.
+        </i></span>
+      </div>
+    </div>
+
+    <div id="right-panel" class="panel collapsed">
+      <h3 class="panel-title" data-target="dup-results">Fișiere duplicate</h3>
+      <div id="dup-results" class="scroll-box">
+        <span class="panel-description"><i>
+          Duplicatele sunt detectate prin compararea hash-urilor SHA-256 ale fișierelor.<br>
+          Fișierele identice sunt grupate, indiferent de nume sau locație.
+        </i></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   MOCK API – simulează window.api din Electron
+   ═══════════════════════════════════════════════════════════ */
+const MOCK_FOLDER = "Test_imagini";
+const MOCK_FILES = [
+  { name: "TM-FD-01194-1901.jpeg", path: "Test_imagini/TM-FD-01194-1901.jpeg", ext: ".jpeg", mime: "image/jpeg", puid: "fmt/43" },
+  { name: "TM-FD-01194-1902.jpeg", path: "Test_imagini/TM-FD-01194-1902.jpeg", ext: ".jpeg", mime: "image/jpeg", puid: "fmt/43" }
+];
+
+window.api = {
+  selectFolder: async () => {
+    // Simulează alegerea folderului Test_imagini
+    return MOCK_FOLDER;
+  },
+
+  scanAndIdentify: async (folder) => {
+    // Simulează scanare cu rezultate hardcodate (ca în aplicația reală)
+    await delay(1800);
+    return {
+      wrongExt: [
+        {
+          name: "TM-FD-00001-01.pdf",
+          path: "C:\\Users\\puribus\\Desktop\\emitent2\\1\\TM-FD-00001-01.pdf",
+          currentExt: "pdf",
+          correctExt: "jpg"
+        }
+      ],
+      duplicates: [
+        {
+          name: "TM-FD-00001-02.tiff",
+          dupPath: "C:\\Users\\puribus\\Desktop\\emitent2\\1\\TM-FD-00001-02.tiff",
+          originalPath: "C:\\Users\\puribus\\Desktop\\emitent2\\1\\BH-FD-00003-1-1(1)_0004_s.tiff"
+        }
+      ],
+      total: 12
+    };
+  },
+
+  generateSip: async ({ formular }) => {
+    await delay(2200);
+    const numeComun = `${formular.judet}-${formular.volum}`;
+    return {
+      numeComun,
+      hashSincronizat: "a3f8c2e91b7d4e6f0a1c5b8d2e9f3a7c4b6d0e8f1a2b3c4d5e6f7a8b9c0d1e2f",
+      destFolder: `C:\\MAD-SIP\\Output\\${numeComun}`,
+      computer: "SIM-PC-01",
+      user: "utilizator.simulare"
+    };
+  },
+
+  fixExtension: async () => { await delay(600); return true; },
+  deleteDuplicate: async () => { await delay(600); return true; },
+  openInfo: () => alert("MaD-SIP Generator v1.0.1\nSimulare browser – fără backend Electron."),
+  pronomUpdate: async () => ({ ok: true, message: "PRONOM actualizat (simulare)." }),
+  pronomVersion: async () => ({ ok: true, message: "PRONOM v116 (simulare)." }),
+  getLicenseStatus: async () => ({
+    expired: false,
+    daysLeft: 365,
+    license: { type: "permanent", expires: "2027-12-31" }
+  }),
+  openDevTools: () => console.log("DevTools – disponibil doar în Electron."),
+  onScanProgress: () => {},
+  offScanProgress: () => {},
+  onSipProgress: () => {},
+  offSipProgress: () => {}
+};
+
+function delay(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGICĂ PRINCIPALĂ (adaptată din original)
+   ═══════════════════════════════════════════════════════════ */
+window.addEventListener("DOMContentLoaded", () => {
+
+  // Panouri inițial colapsate + descrieri
+  document.getElementById("left-panel").classList.add("collapsed");
+  document.getElementById("right-panel").classList.add("collapsed");
+
+  // Uppercase + volum doar cifre
+  ["judet", "volum", "emitent", "fond", "observatii"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      if (id === "volum") {
+        el.value = el.value.replace(/\D/g, "").slice(0, 5);
+        return;
+      }
+      if (typeof el.setSelectionRange === "function") {
+        const start = el.selectionStart;
+        el.value = el.value.toUpperCase();
+        el.setSelectionRange(start, start);
+      } else {
+        el.value = el.value.toUpperCase();
+      }
+    });
+  });
+
+  function setProgress(p, label = "") {
+    const bar = document.getElementById("progress-bar");
+    const lbl = document.getElementById("progress-label");
+    bar.style.width = p + "%";
+    lbl.textContent = label ? `${label} ${Math.round(p)}%` : `${Math.round(p)}%`;
+    lbl.style.opacity = p > 0 ? "1" : "0";
+  }
+
+  function finishProgress() {
+    setProgress(100, "Gata.");
+    setTimeout(() => setProgress(0), 1400);
+  }
+
+  // ── Selectare folder + scanare ──
+  document.getElementById("btn-select-folder").addEventListener("click", async () => {
+    const judet   = document.getElementById("judet").value.trim();
+    const emitent = document.getElementById("emitent").value.trim();
+    const fond    = document.getElementById("fond").value.trim();
+    const volum   = document.getElementById("volum").value.trim();
+
+    if (!/^\d{5}$/.test(volum)) {
+      document.getElementById("scan-summary").innerHTML =
+        `<span style="color:var(--danger);">⚠ Numărul volumului trebuie să conțină exact 5 cifre. Exemplu: 00001</span>`;
+      document.getElementById("volum").focus();
+      return;
+    }
+    if (!judet || !emitent || !fond) {
+      document.getElementById("scan-summary").innerHTML =
+        `<span style="color:var(--danger);">⚠ Completează mai întâi formularul SIP.</span>`;
+      return;
+    }
+
+    const folder = await window.api.selectFolder();
+    if (!folder) return;
+
+    document.getElementById("scan-summary").textContent = `Scanare folder „${folder}” în curs...`;
+    setProgress(8, "Se inițializează...");
+
+    // Simulare progress
+    const steps = [
+      { pct: 25, label: "Citire fișiere..." },
+      { pct: 55, label: "Identificare PRONOM..." },
+      { pct: 80, label: "Verificare hash..." },
+      { pct: 95, label: "Finalizare..." }
+    ];
+    for (const s of steps) {
+      await delay(350);
+      setProgress(s.pct, s.label);
+    }
+
+    const { wrongExt, duplicates, total } = await window.api.scanAndIdentify(folder);
+
+    document.getElementById("scan-summary").innerHTML =
+      `<span style="color:var(--warning);">✓ Fișiere scanate: ${total} | extensii suspecte: ${wrongExt.length} | duplicate: ${duplicates.length}</span>`;
+
+    // Afișare rezultate (hardcodate din scanare)
+    const extBox = document.getElementById("ext-results");
+    const dupBox = document.getElementById("dup-results");
+
+    if (wrongExt.length === 0) {
+      extBox.innerHTML = `<span class="panel-description">Nicio extensie suspectă.</span>`;
+      document.getElementById("left-panel").classList.add("collapsed");
+    } else {
+      document.getElementById("left-panel").classList.remove("collapsed");
+      extBox.innerHTML = wrongExt.map((item, i) => `
+        <div class="ext-entry" id="ext-entry-${i}">
+          <span class="ext-name">- ${item.name}</span>
+          <span class="ext-detail">Cale: ${item.path}</span>
+          <span class="ext-detail">Extensia actuală: ${item.currentExt} → <span class="yellow">corectă: ${item.correctExt}</span></span>
+          <a class="ext-fix-link" data-ext-index="${i}" href="#">corectează extensia</a>
+        </div>
+      `).join("");
+    }
+
+    if (duplicates.length === 0) {
+      dupBox.innerHTML = `<span class="panel-description">Niciun duplicat găsit.</span>`;
+      document.getElementById("right-panel").classList.add("collapsed");
+    } else {
+      document.getElementById("right-panel").classList.remove("collapsed");
+      dupBox.innerHTML = duplicates.map((item, i) => `
+        <div class="ext-entry" id="dup-entry-${i}">
+          <span class="ext-name">- ${item.name}</span>
+          <span class="ext-detail"><span class="yellow">Duplicat:</span> ${item.dupPath}</span>
+          <span class="ext-detail">Original: ${item.originalPath}</span>
+          <a class="dup-delete-link" data-dup-index="${i}" href="#" style="color:var(--danger);">șterge duplicat</a>
+        </div>
+      `).join("");
+    }
+
+    // Link-uri: corectează extensia / șterge duplicat (simulare realistă)
+    extBox.querySelectorAll(".ext-fix-link").forEach(link => {
+      link.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (link.dataset.done === "1") return;
+        const idx = link.getAttribute("data-ext-index");
+        const entry = document.getElementById("ext-entry-" + idx);
+        const item = wrongExt[parseInt(idx, 10)];
+        link.textContent = "⏳ se corectează...";
+        link.style.pointerEvents = "none";
+        link.style.color = "var(--text-muted)";
+        await window.api.fixExtension();
+        // Afișare după extensia corectată (ca în analiza de integritate)
+        const baseName = item.name.replace(/\.[^.]+$/, "");
+        const fixedName = baseName + "." + item.correctExt;
+        if (entry) {
+          entry.style.background = "rgba(16, 185, 129, 0.08)";
+          entry.innerHTML = `
+            <span class="ext-name">- ${fixedName}</span>
+            <span class="ext-detail">Cale: ${item.path.replace("." + item.currentExt, "." + item.correctExt)}</span>
+            <span class="ext-detail">Extensia actuală: <span class="yellow">${item.correctExt}</span>
+              <span style="color:var(--success); font-weight:600;"> · Corectat ✓</span>
+            </span>
+            <span class="ext-fix-link" style="color:var(--success); pointer-events:none; text-decoration:none;">Corectat ✓</span>
+          `;
+        }
+        document.getElementById("scan-summary").innerHTML =
+          `<span style="color:var(--success);">✓ Extensie corectată: ${item.name} → ${fixedName}</span>`;
+      });
+    });
+
+    dupBox.querySelectorAll(".dup-delete-link").forEach(link => {
+      link.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (link.dataset.done === "1") return;
+        link.dataset.done = "1";
+        const idx = link.getAttribute("data-dup-index");
+        const entry = document.getElementById("dup-entry-" + idx);
+        const item = duplicates[parseInt(idx, 10)];
+        link.textContent = "⏳ se șterge...";
+        link.style.pointerEvents = "none";
+        link.style.color = "var(--text-muted)";
+        await window.api.deleteDuplicate();
+        // Elimină rândul (ca în analiza de integritate)
+        if (entry) {
+          entry.style.transition = "opacity 0.35s ease, max-height 0.35s ease";
+          entry.style.opacity = "0";
+          entry.style.maxHeight = entry.offsetHeight + "px";
+          setTimeout(() => {
+            entry.remove();
+            // Dacă nu mai rămân duplicate, mesaj gol
+            if (!dupBox.querySelector(".ext-entry")) {
+              dupBox.innerHTML = `<span class="panel-description" style="color:var(--success);">Niciun duplicat rămas.</span>`;
+            }
+          }, 350);
+        }
+        document.getElementById("scan-summary").innerHTML =
+          `<span style="color:var(--success);">✓ Duplicat șters: ${item ? item.name : "fișier"}</span>`;
+      });
+    });
+
+    finishProgress();
+  });
+
+  // ── Generare SIP ──
+  document.getElementById("btn-generate").addEventListener("click", async () => {
+    const formular = {
+      judet:      document.getElementById("judet").value.trim(),
+      volum:      `FD-${document.getElementById("volum").value.trim()}`,
+      emitent:    document.getElementById("emitent").value.trim(),
+      fond:       document.getElementById("fond").value.trim(),
+      observatii: document.getElementById("observatii").value.trim()
+    };
+
+    if (!formular.judet || !formular.volum || !formular.emitent || !formular.fond) {
+      document.getElementById("scan-summary").innerHTML =
+        `<span style="color:var(--danger);">⚠ Completează formularul SIP înainte de generare.</span>`;
+      return;
+    }
+    const volumNr = document.getElementById("volum").value.trim();
+    if (!/^\d{5}$/.test(volumNr)) {
+      document.getElementById("scan-summary").innerHTML =
+        `<span style="color:var(--danger);">⚠ Numărul volumului trebuie să conțină exact 5 cifre.</span>`;
+      document.getElementById("volum").focus();
+      return;
+    }
+
+    setProgress(10, "Pregătire SIP...");
+    await delay(400);
+    setProgress(40, "Creare structură...");
+    await delay(500);
+    setProgress(70, "Calcul hash SHA-256...");
+    await delay(600);
+    setProgress(90, "Scriere manifest...");
+
+    const result = await window.api.generateSip({ formular });
+
+    if (!result || result.error) {
+      document.getElementById("scan-summary").innerHTML =
+        `<span style="color:var(--danger);">⚠ ${result?.error || "Eroare necunoscută"}</span>`;
+      setProgress(0);
+      return;
+    }
+
+    finishProgress();
+
+    const numeZip = `${result.numeComun}.zip`;
+    const numeMI  = `MI-SIP_${result.numeComun}.json`;
+    const numeME  = `ME-SIP_${result.numeComun}.json`;
+
+    document.getElementById("scan-summary").innerHTML = `
+      <strong style="color:var(--success);">✓ Pachetul de transmitere a fost generat (simulare):</strong><br>
+      📦 ZIP: ${numeZip}<br>
+      📜 Manifest intern: ${numeMI}<br>
+      📄 Manifest extern: ${numeME}<br>
+      🔐 Hash ZIP (SHA-256): ${result.hashSincronizat}<br>
+      📁 Salvat în: ${result.destFolder}<br>
+      💻 Computer: ${result.computer} &nbsp;|&nbsp; 👤 Utilizator: ${result.user}<br>
+      ✅ Structura ZIP și hash-ul sunt sincronizate.
+    `;
+// ── Lansare raport HTML ──────────────────────────────────────
+const raportPath = "RAPORT.html";
+setTimeout(() => {
+  window.location.href = raportPath;
+}, 800);
+  });
+
+  // Șterge mesajele de eroare la input
+  ["judet", "volum", "emitent", "fond"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      const summary = document.getElementById("scan-summary");
+      if (summary.innerHTML.includes("⚠")) summary.innerHTML = "";
+    });
+  });
+
+  // Toggle panouri
+  document.querySelectorAll(".panel-title").forEach(title => {
+    title.addEventListener("click", () => {
+      title.parentElement.classList.toggle("collapsed");
+    });
+  });
+
+  // Buton Completare formular – completează rapid pentru demo
+  document.getElementById("btn-formular").addEventListener("click", () => {
+    document.getElementById("judet").value = "TM";
+    document.getElementById("volum").value = "01194";
+    document.getElementById("emitent").value = "SJAN TIMIȘ";
+    document.getElementById("fond").value = "PRIMĂRIA MUNICIPIULUI TIMIȘOARA";
+    document.getElementById("observatii").value = "SIMULARE – folder Test_imagini";
+    document.getElementById("scan-summary").innerHTML =
+      `<span style="color:var(--accent);">Formular completat automat (demo).</span>`;
+  });
+});
+
+/* ── Tema ── */
+const toggleBtn = document.getElementById("theme-toggle");
+let isLight = localStorage.getItem("theme") === "light";
+function applyTheme() {
+  document.body.classList.toggle("light", isLight);
+  toggleBtn.textContent = isLight ? "🌑" : "🌓";
+}
+applyTheme();
+toggleBtn.addEventListener("click", () => {
+  isLight = !isLight;
+  localStorage.setItem("theme", isLight ? "light" : "dark");
+  applyTheme();
+});
+
+/* ── Meniu sidebar ── */
+document.addEventListener("DOMContentLoaded", () => {
+  function setupSidebarSubmenu(btnId, submenuId) {
+    const btn = document.getElementById(btnId);
+    const submenu = document.getElementById(submenuId);
+    if (!btn || !submenu) return;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = submenu.classList.contains("open");
+      document.querySelectorAll(".sidebar-submenu").forEach(s => s.classList.remove("open"));
+      if (!isOpen) submenu.classList.add("open");
+    });
+  }
+  setupSidebarSubmenu("smenu-mentenanta-btn", "smenu-mentenanta");
+
+  document.getElementById("smenu-btn-info")?.addEventListener("click", () => window.api.openInfo());
+  document.getElementById("smenu-btn-pronom-update")?.addEventListener("click", async () => {
+    const r = await window.api.pronomUpdate();
+    alert(r.ok ? r.message : `Eroare: ${r.message}`);
+  });
+  document.getElementById("smenu-btn-pronom-version")?.addEventListener("click", async () => {
+    const r = await window.api.pronomVersion();
+    alert(r.ok ? r.message : `Eroare: ${r.message}`);
+  });
+  document.getElementById("smenu-btn-license-status")?.addEventListener("click", async () => {
+    const status = await window.api.getLicenseStatus();
+    const tip = status.license.type === "trial" ? "Evaluare (Trial)" : "Licențiat";
+    alert(`✅ Licență ACTIVĂ\n\nTip: ${tip}\nExpiră: ${status.license.expires}\nZile rămase: ${status.daysLeft}`);
+  });
+  document.getElementById("smenu-btn-devtools")?.addEventListener("click", () => window.api.openDevTools());
+
+  document.addEventListener("click", (e) => {
+    const menuArea = document.querySelector(".sidebar-menu");
+    if (menuArea && !menuArea.contains(e.target)) {
+      document.querySelectorAll(".sidebar-submenu").forEach(s => s.classList.remove("open"));
+    }
+  });
+});
+
+/* ── Matrix curtain ── */
+(function () {
+  const canvas = document.getElementById("sidebar-matrix");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  let animId = null;
+  let startTime = null;
+  const DURATION = 1100;
+  const FADE_OUT = 350;
+  let staticMatrix = null;
+
+  function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+
+  function generateStaticMatrix() {
+    const fontSize = 16;
+    const lineHeight = 18;
+    const text = "MaD-SIP Generator";
+    const matrixCanvas = document.createElement("canvas");
+    matrixCanvas.width = canvas.width;
+    matrixCanvas.height = canvas.height;
+    const mctx = matrixCanvas.getContext("2d");
+    mctx.font = fontSize + "px monospace";
+    mctx.fillStyle = "rgba(126,184,255,0.32)";
+    mctx.textAlign = "center";
+    const posX = canvas.width / 2;
+    const rows = Math.floor(canvas.height / lineHeight);
+    for (let r = 1; r <= rows; r++) {
+      mctx.fillText(text, posX, r * lineHeight);
+      if (Math.random() < 0.18) {
+        mctx.globalAlpha = 0.15;
+        mctx.fillText(text, posX, r * lineHeight + 1);
+        mctx.globalAlpha = 1;
+      }
+    }
+    staticMatrix = matrixCanvas;
+  }
+
+  function draw(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(elapsed / DURATION, 1);
+    const curtainHeight = canvas.height * progress;
+    let opacity = 1;
+    if (elapsed > DURATION - FADE_OUT) {
+      opacity = 1 - ((elapsed - (DURATION - FADE_OUT)) / FADE_OUT);
+    }
+    canvas.style.opacity = opacity;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(staticMatrix, 0, 0, canvas.width, curtainHeight, 0, 0, canvas.width, curtainHeight);
+    if (elapsed < DURATION) {
+      animId = requestAnimationFrame(draw);
+    } else {
+      canvas.style.display = "none";
+      cancelAnimationFrame(animId);
+    }
+  }
+
+  window.addEventListener("load", () => {
+    resize();
+    generateStaticMatrix();
+    animId = requestAnimationFrame(draw);
+  });
+  window.addEventListener("resize", () => {
+    resize();
+    generateStaticMatrix();
+  });
+})();
+</script>
+</body>
+</html>

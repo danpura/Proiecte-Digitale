@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+	<link rel="stylesheet" href="assets/info-white.css">
+		<link rel="stylesheet" href="assets/index-white.css">
+<title>Raport SIP — TM-FD-01194-2026.08.24</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 13px;
+         color: #1a1a2e; background: #fff; padding: 32px 40px; }
+
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 14px; font-weight: 600; margin: 28px 0 10px;
+       padding-bottom: 4px; border-bottom: 2px solid #3a5bd9; color: #3a5bd9; }
+
+  .header-block { border: 1px solid #d0d5e8; border-radius: 6px;
+                  padding: 16px 20px; margin-bottom: 24px; background: #f7f8fc; }
+  .header-block .subtitle { font-size: 12px; color: #555; margin-bottom: 12px; }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 32px; }
+  .meta-row  { display: flex; gap: 8px; }
+  .meta-label{ color: #555; min-width: 160px; }
+  .meta-value{ font-weight: 500; }
+
+  .stats-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-card { border: 1px solid #d0d5e8; border-radius: 6px; padding: 12px 20px;
+               flex: 1; min-width: 140px; background: #f7f8fc; text-align: center; }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: #3a5bd9; }
+  .stat-card .lbl { font-size: 11px; color: #666; margin-top: 2px; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 12px; }
+  th { background: #3a5bd9; color: #fff; padding: 7px 10px; text-align: left;
+       font-weight: 600; font-size: 11px; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e8ebf5; vertical-align: top; }
+  tr:hover td { background: #f0f3ff; }
+  .deleted-row td { color: #999; text-decoration: line-through; }
+
+  .mono  { font-family: "Consolas", "Courier New", monospace; font-size: 11px; }
+  .hash  { font-size: 10px; color: #444; word-break: break-all; max-width: 320px; }
+  .obs-has { color: #b45309; font-weight: 500; }
+  .obs-del { color: #9e1c1c; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px;
+           font-size: 10px; font-weight: 600; }
+  .badge-fix { background: #fef3c7; color: #92400e; }
+  .badge-del { background: #fee2e2; color: #7f1d1d; }
+
+  .hash-block { background: #f0f3ff; border: 1px solid #c7d0f0; border-radius: 6px;
+                padding: 12px 16px; font-family: monospace; font-size: 11px;
+                word-break: break-all; margin-bottom: 8px; }
+  .hash-block .hl { font-weight: 700; color: #1e3a8a; }
+
+  .toggle-btn { font-size: 11px; color: #3a5bd9; cursor: pointer;
+                background: none; border: none; padding: 4px 0;
+                text-decoration: underline; margin-bottom: 6px; }
+
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #d0d5e8;
+            font-size: 11px; color: #888; text-align: center; }
+
+  @media print {
+    body { padding: 16px 20px; font-size: 11px; }
+    .no-print { display: none !important; }
+    h2 { break-after: avoid; }
+    table { break-inside: auto; }
+    tr   { break-inside: avoid; }
+    .toggle-btn { display: none; }
+    details { display: block !important; }
+    details summary { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>Raport MaD-SIP Generator</h1><br>
+<div class="header-block">
+	<h1>Pachet SIP generat: TM-FD-01194-2026.08.24</h1>
+  <div class="meta-grid">
+    <div class="meta-row"><span class="meta-label">Emitent / fond:</span>
+      <span class="meta-value">SJAN TIMIȘ — PRIMĂRIA MUNICIPIULUI TIMIȘOARA</span></div>
+    <div class="meta-row"><span class="meta-label">Computer / utilizator:</span>
+      <span class="meta-value">Lenovo-T470 / Puribus</span></div>
+    <div class="meta-row"><span class="meta-label">Județ / volum:</span>
+      <span class="meta-value">TM / FD-01194</span></div>
+    <div class="meta-row"><span class="meta-label">Folder sursă:</span>
+      <span class="meta-value mono">C:\Users\Puribus\Storage\tm</span></div>
+    <div class="meta-row"><span class="meta-label">Folder destinație SIP:</span>
+      <span class="meta-value mono">C:\Users\Puribus\Storage\SIP_TM-FD-01194-2026.08.24</span></div>
+    <div class="meta-row"><span class="meta-label">Data generării:</span>
+      <span class="meta-value">24.08.2026, 21:24:17</span></div>
+    
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="num">2</div>
+    <div class="lbl">fișiere arhivate</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">0</div>
+    <div class="lbl">duplicate șterse</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">0</div>
+    <div class="lbl">extensii corectate</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">4.06 MB</div>
+    <div class="lbl">dimensiune ZIP</div>
+  </div>
+</div>
+
+<h2>Hash-uri de integritate</h2>
+<div class="hash-block">
+  <div><span class="hl">Hash ancoră SIP (SHA-256):</span> 1731bbf6b7990a4e357cae25a40f1b6e2485b1e10be6dc331939d934bdf4d52d</div>
+  <div style="margin-top:6px"><span class="hl">Hash fizic ZIP (SHA-256):&nbsp;&nbsp;</span> f58ac3eb290cbad8926458d1f1286ee12a19649f95b299270b4835bb7d00bedb</div>
+</div>
+
+<h2>Inventar fișiere
+  <button class="toggle-btn no-print" onclick="toggleTable('tbl-fisiere', this)">▼ restrânge</button>
+</h2>
+<table id="tbl-fisiere">
+  <thead><tr>
+    <th style="width:40%">Cale relativă</th>
+    <th style="width:38%">SHA-256</th>
+    <th style="width:22%">Observații</th>
+  </tr></thead>
+  <tbody>
+    
+        <tr>
+            <td class="mono">TM-FD-01194-1901.jpeg</td>
+            <td class="mono hash">bacd7b015c6769c1ed20f95aeb0a93a220ef54a55a72ab98416aefefef3a9579</td>
+            <td class="">—</td>
+        </tr>
+        <tr>
+            <td class="mono">TM-FD-01194-1902.jpeg</td>
+            <td class="mono hash">c58e13aca822d741092cd6eefa4de050e89523323089607ad957750d04ca336e</td>
+            <td class="">—</td>
+        </tr>
+    
+  </tbody>
+</table>
+
+<h2>Jurnal evenimente PREMIS
+  <button class="toggle-btn no-print" onclick="toggleTable('tbl-log', this)">▼ restrânge</button>
+</h2>
+<table id="tbl-log">
+  <thead><tr>
+    <th style="width:18%">Timestamp</th>
+    <th style="width:18%">Tip</th>
+    <th>Detaliu</th>
+  </tr></thead>
+  <tbody><tr><td colspan="3" style="text-align:center;color:#888">Nicio intervenție efectuată</td></tr></tbody>
+</table>
+
+<div class="footer">
+<div class="no-print" style="margin-bottom:20px;display:flex;gap:12px;align-items:center">
+  <button onclick="window.print()" 
+          style="padding:8px 20px;background:#3a5bd9;color:#fff;border:none;
+                 border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">
+    🖨 Printează / Salvează PDF
+  </button>
+ </div>
+  MaD-SIP · TM-FD-01194-2026.08.24 · 24.08.2026, 21:24:17 · Lenovo-T470 / Puribus
+</div>
+
+<script>
+function toggleTable(id, btn) {
+  const el = document.getElementById(id);
+  const hidden = el.style.display === "none";
+  el.style.display = hidden ? "" : "none";
+  btn.textContent = hidden ? "▼ restrânge" : "▶ extinde";
+}
+</script>
+</body>
+</html>
