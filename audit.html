@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAP - AR-FD-12345-2026.08.26</title>
+    <style>
+
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 40px; background-color: #ffffff; color: #333; }
+        .report-card { max-width: 1100px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .logo-text h1 { margin: 0; font-size: 28px; color: #1e272e; }
+        .logo-text h1 span { color: #27ae60; }
+        .logo-text p { margin: 5px 0 0; color: #3498db; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+        .badge-status { background: #e74c3c; color: white; padding: 8px 20px; font-weight: bold; border-radius: 4px; display: inline-block; font-size: 14px; }
+        .panel { background-color: #f8f9fa; border: 1px solid #e9ecef; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .panel h3 { margin-top: 0; font-size: 13px; color: #2d3436; text-transform: uppercase; border-bottom: 1px solid #dee2e6; padding-bottom: 10px; margin-bottom: 15px; }
+        .info-row { margin-bottom: 8px; font-size: 13px; line-height: 1.5; }
+        .hash-box { background: #ffffff; border: 1px solid #ddd; padding: 10px; font-family: 'Consolas', monospace; font-size: 11px; word-break: break-all; margin: 5px 0; border-radius: 3px; display: block; color: #444; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+th { 
+    background: #2c3e50; 
+    color: white; 
+    padding: 12px; 
+    text-align: left; 
+    font-size: 12px; 
+    cursor: pointer; 
+    border-right: 1px solid #34495e;
+    position: relative;
+    padding-right: 20px; /* Spațiu pentru simbol */
+}
+
+th:hover { background: #34495e; }
+
+/* Simbolul neutru (apare mereu) */
+th::after { 
+    content: ' ↕'; 
+    position: absolute; 
+    right: 8px; 
+    color: rgba(255,255,255,0.5); 
+}
+
+/* Săgețile active (suprascriu simbolul neutru) */
+th.sort-asc::after { 
+    content: ' ↑'; 
+    color: #27ae60; 
+    font-weight: bold;
+}
+
+th.sort-desc::after { 
+    content: ' ↓'; 
+    color: #27ae60; 
+    font-weight: bold;
+}
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 12px; }
+        .status-tag { font-weight: bold; padding: 4px 8px; border-radius: 3px; white-space: nowrap;display: inline-block;}
+        .tag-ok { color: #27ae60; }
+        .tag-fail { color: #e74c3c; background: #ffdada; }
+        .tag-justified { color: #f39c12; background: #fef5e7; border: 1px solid #f8c471; }
+        details { background: #fff; border: 1px solid #e9ecef; border-radius: 5px; margin-top: 15px; }
+        summary { padding: 15px; cursor: pointer; font-weight: bold; background: #f8f9fa; outline: none; font-size: 14px; }
+        .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #7f8c8d; border-top: 3px solid #eee; padding-top: 20px; }
+        code { white-space: pre-wrap; word-break: break-all; display: block; max-width: 250px; }
+
+
+.audit-seal-section {
+    border-top: 2px solid #eee;
+    border-bottom: 2px solid #eee;
+    padding: 15px 0;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.seal-info {
+    font-size: 13px;
+    color: #555;
+}
+.seal-code {
+    font-family: 'Consolas', monospace;
+    color: darkblue;
+
+    font-size: 11px; /* Micșorăm puțin fontul pentru a încăpea tot hash-ul */
+    word-break: break-all; /* Forțăm ruperea rândului dacă e nevoie */
+
+}
+.id-pachet-label {
+    font-size: 11px;
+    color: #95a5a6;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+    </style>
+</head>
+<body>
+    <div class="report-card">
+        <header>
+            <div class="logo-text">
+                <h1>MaD-oais <span>v3.0</span></h1>
+                <p>Raport Audit Prezervare</p>
+            </div>
+            <div style="text-align: right;">
+                <div class="badge-status">PROBLEME DE INTEGRITATE</div>
+                <div class="id-pachet-label" style="margin-top: 10px;">ID RAPORT: RAP-5f7ae3de</div>
+            </div>
+        </header>
+
+<div class="audit-seal-section">
+    <div class="seal-info">
+        Cod unic de integritate (SHA-256) calculat la data: <strong>30.08.2026, 21:20:27</strong>
+    </div>
+    <div class="seal-code">
+        5f7ae3deb44bf71113c24cfbd372adbee15bd9559475b5f50ba274655e26712d
+    </div>
+</div><br>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="panel">
+                <h3>📊 Detalii Storage</h3>
+                <div class="info-row"><span>Locație:</span> C:\Users\puribus\Desktop\TM-FD-00003</div>
+                <div class="info-row"><span>Dimensiune totală:</span> Nespecificat</div>
+                <div class="info-row"><span>Structură:</span> 0 foldere / 0 fișiere</div>
+                <hr style="border:0; border-top:1px solid #eee; margin:10px 0;"><br>
+<h3>📊 Detalii din baza de date</h3>                
+<div class="info-row"><span>Obiecte corespondente în DB:</span> <strong>1</strong></div>
+<div class="info-row"><span>Obiecte Master:</span> <strong style="color:#e67e22">1</strong></div>
+
+<div class="info-row"><span>Obiecte Derivat:</span> <strong style="color:#e67e22">0</strong></div>
+                <div class="info-row"><span>Absențe justificate în DB:</span> <strong style="color:#2980b9">0</strong></div>
+            </div>
+
+<div class="panel">
+    <h3>🛡️ Rezumat Status</h3>
+    
+    <div class="info-row">
+        <span><strong>Obiecte Master:</strong></span>
+    </div>
+
+    <div class="info-row">
+        <span>Fișiere cu Hash identic:</span>
+        <strong style="color:#27ae60">
+            0 / 1
+        </strong>
+    </div>
+
+    <div class="info-row">
+        <span>Absențe justificate prin evenimente PREMIS:</span>
+        <strong style="color:#2980b9">0</strong>
+    </div>
+
+    <div class="info-row" style="background-color: #ffcccc; color: #c0392b; font-weight: bold; padding: 5px; border-radius: 3px; border: 1px solid #e74c3c;">
+        <span>Absențe nejustificate:</span>
+        <strong style="color:#c0392b">
+            1
+        </strong>
+    </div>
+
+    <div class="info-row" style="">
+        <span>Fișiere cu Hash compromis:</span>
+        <strong style="color:#c0392b">
+            0
+        </strong>
+    </div>
+
+    <div class="info-row">
+        <span>Fișiere cu extensie modificată:</span>
+        <strong style="color:#e67e22">
+            0
+        </strong>
+    </div>
+
+<div class="info-row">
+    <span>Fișiere redenumite:</span>
+    <strong style="color:#e67e22">
+        0
+    </strong>
+</div>
+
+<div class="info-row">
+    <span>Fișiere mutate (locație nouă):</span>
+    <strong style="color:#e67e22">
+        0
+    </strong>
+</div>
+
+    <div class="info-row">
+        <span>Dublete (Mastere multiple):</span>
+        <strong style="color:#9b59b6">0</strong>
+    </div>
+
+    <div class="info-row" style="margin-top: 10px; padding-top: 5px; border-top: 1px solid #eee;">
+        <span><strong>Derivate</strong> identificate:</span>
+        <strong style="color:#27ae60">
+            0 / 0
+        </strong>
+    </div>
+
+    <div class="info-row">
+        <span><strong>Orfane</strong> identificate:</span>
+        <strong style="color:#d4ac0d">0</strong>
+    </div>
+</div>
+</div>
+<details>
+    <summary class="summary-master">OBIECTE MASTER (1)</summary>
+    <table>
+        <thead>
+            <tr><th>Nume Fișier</th><th>Hash Ingestie</th><th>Hash Audit</th><th>Status</th><th>Detalii</th></tr>
+        </thead>
+        <tbody>
+            <tr class="row-error">
+                <td><strong>TM-FD-00003-1-1(1)_0002_s.jpg</strong></td>
+                <td><code style="font-size:10px;">897cd8dc7c72f71f7e9eb9b99e56be1c8455582139f1a085686399d27169898e</code></td>
+                <td><code style="font-size:10px;">LIPSĂ</code></td>
+                <td><span class="status-tag tag-fail">CRITIC: LIPSĂ</span></td>
+                <td style="font-size:11px; color:#666;"></td>
+            </tr></tbody>
+    </table>
+</details>
+<details>
+    <summary style="background: #f4ecf7; color: #8e44ad; border: 1px solid #d2b4de;">DUBLETE IDENTIFICATE (0)
+    </summary>
+    <p style="padding:15px; color:#9b59b6;">Nu au fost detectate dublete fizice pentru obiectele din bază.</p>
+</details>
+<details>
+    <summary class="summary-derivative">OBIECTE DERIVATE (0)</summary>
+    <p style="padding:15px; color:#999;">Nu există fișiere derivate în acest pachet.</p>
+</details>
+
+        <details>
+            <summary class="summary-orphans">FIȘIERE ORFANE (0)</summary>
+            <p style="padding:15px; color:#27ae60;">Nu au fost detectate fișiere orfane.</p>
+        </details>
+
+        <details>
+            <summary style="background: #fff3e0; color: #e65100; border: 1px solid #ffcc80;">
+                SUSPECTE | Criptate - Protejate prin parolă - Semnătură invalidă - Steganografii(2)
+            </summary>
+            <table>
+                <thead>
+                    <tr style="background:#e65100; color:white;">
+                        <th>Nume Fișier</th>
+                        <th>Motiv Detecție</th>
+                        <th>Detalii</th>
+                        <th>Cale Completă</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td><strong>TM-FD-00003-stegano.pdf</strong></td>
+                        <td><span style="background:#fff3e0; color:#e65100; padding:2px 6px; border-radius:3px; font-size:10px; border:1px solid #ffcc80;">Steganografie suspectă</span></td>
+                        <td style="font-size:11px; color:#555;">Date binare după ultimul marker %%EOF (255707 bytes) | Semnătură format după %%EOF: 7z, EXE, GZ</td>
+                        <td style="font-family:monospace; font-size:10px; color:#666;">C:\Users\puribus\Desktop\TM-FD-00003\TM-FD-00003-stegano.pdf</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TM-FD-00003-stegano.tiff</strong></td>
+                        <td><span style="background:#fff3e0; color:#e65100; padding:2px 6px; border-radius:3px; font-size:10px; border:1px solid #ffcc80;">Steganografie suspectă</span></td>
+                        <td style="font-size:11px; color:#555;">Semnătură format embedded în TIFF: 7z la offset 24011038 | Extensii obfuscate detectate în conținut binar: .pdf</td>
+                        <td style="font-family:monospace; font-size:10px; color:#666;">C:\Users\puribus\Desktop\TM-FD-00003\TM-FD-00003-stegano.tiff</td>
+                    </tr>
+                </tbody>
+            </table>
+        </details>
+<details open style="border: 2px solid #e74c3c;">
+    <summary style="background: #e74c3c; color: white;">ERORI CRITICE (1)</summary>
+    <table class="error-table">
+        <thead>
+            <tr style="background:#c0392b; color:white;">
+                <th>Tip</th>
+                <th>Obiect</th>
+                <th>Cale Detaliată</th>
+                <th>Diagnostic</th>
+            </tr>
+        </thead>
+        <tbody>
+
+<tr style="background: #fff5f5;">
+    <td><strong>MASTER</strong></td>
+    <td>TM-FD-00003-1-1(1)_0002_s.jpg</td>
+    <td style="font-size:10px; font-family: monospace;">LIPSĂ PE DISK</td>
+    <td>
+        <span class="status-tag tag-fail">ALERTA: LIPSĂ</span>
+        <p style="margin:5px 0; font-size:11px; line-height: 1.4; color: #2c3e50;">
+            🚫 DISCONTINUITATE: Fișierul nu a fost găsit în storage-ul fizic.
+        </p>
+        
+            <div style="font-size: 9px; color: #7f8c8d; background: #f4f4f4; padding: 5px; border-radius: 3px; margin-top: 5px; border-left: 2px solid #e74c3c;">
+                <strong>Hash de referință (Ingestie):</strong><br>
+                <span style="font-family: monospace;">897cd8dc7c72f71f7e9eb9b99e56be1c8455582139f1a085686399d27169898e</span>
+            </div>
+    </td>
+</tr>
+        </tbody>
+    </table>
+</details>
+
+<div class="footer">
+    <div style="margin-bottom: 15px; padding: 10px; background: #fdfdfd; border: 1px solid #eee; display: inline-block; border-radius: 4px;">
+        <p style="margin: 0; font-size: 11px; color: #555;">
+            <strong>Operator:</strong> puribus | 
+            <strong>Stație lucru:</strong> Lenovo-T470 | 
+            <strong>Sistem:</strong> Windows (10.0.26200)
+        </p>
+    </div>
+    <p style="margin-top: 10px;">Generat de <strong>MaD-oais v3.0</strong> - Audit Module</p>
+    <button class="no-print" onclick="window.print()" style="margin-top:10px; padding:8px 15px; cursor:pointer; background: #2c3e50; color: white; border: none; border-radius: 3px;">
+        📄 Export PDF / Print
+    </button>
+</div>
+    </div>
+<script>
+document.querySelectorAll('th').forEach(headerCell => {
+    headerCell.addEventListener('click', () => {
+        const table = headerCell.closest('table');
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const index = Array.from(headerCell.parentElement.children).indexOf(headerCell);
+        
+        // Verificăm starea actuală
+        const isAscending = headerCell.classList.contains('sort-asc');
+        
+        // RESET: Eliminăm clasele de pe TOATE coloanele acestui tabel
+        table.querySelectorAll('th').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+        });
+
+        const sortedRows = rows.sort((a, b) => {
+            const aValue = a.children[index].innerText.trim().toLowerCase();
+            const bValue = b.children[index].innerText.trim().toLowerCase();
+            
+            if (!isNaN(aValue) && !isNaN(bValue) && aValue !== "" && bValue !== "") {
+                return isAscending ? bValue - aValue : aValue - bValue;
+            }
+            
+            return isAscending 
+                ? (aValue < bValue ? 1 : -1) 
+                : (aValue > bValue ? 1 : -1);
+        });
+
+        // Aplicăm noua clasă
+        headerCell.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
+        
+        tbody.append(...sortedRows);
+    });
+});
+</script>
+</body>
+</html>

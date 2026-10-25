@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit — Asistentul Virtual</title>
+    <style>
+        /* ─────────────────────────────────────────
+           RESET & BASE
+           ───────────────────────────────────────── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Comic Sans MS', system-ui, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0a0518;
+            color: #e9d8fd;
+            user-select: none;
+        }
+
+        /* ─────────────────────────────────────────
+           CANVAS FUNDAL (noduri mișcătoare)
+           ───────────────────────────────────────── */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ─────────────────────────────────────────
+           LAYOUT PRINCIPAL
+           ───────────────────────────────────────── */
+        .page {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 30px 20px;
+            gap: 20px;
+        }
+
+        /* ─────────────────────────────────────────
+           BUTON ÎNAPOI (sus stânga)
+           ───────────────────────────────────────── */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            padding: 10px 18px;
+            background: rgba(159, 122, 234, 0.12);
+            color: #d6bcfa;
+            border: 1px solid rgba(159, 122, 234, 0.4);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+        .back-btn:hover {
+            background: rgba(159, 122, 234, 0.25);
+            border-color: #9f7aea;
+            transform: translateX(-3px);
+            box-shadow: 0 4px 20px rgba(159, 122, 234, 0.4);
+        }
+
+        /* ─────────────────────────────────────────
+           TITLU
+           ───────────────────────────────────────── */
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d6bcfa, #9f7aea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #8069b8;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* ─────────────────────────────────────────
+           AVATAR
+           ───────────────────────────────────────── */
+        .avatar-wrapper {
+            position: relative;
+            width: 130px;
+            height: 180px;
+            flex-shrink: 0;
+        }
+
+        .avatar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Antena */
+        .antenna {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 18px;
+            background: #4a5568;
+            border-radius: 2px;
+        }
+        .antenna::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #d6bcfa, #6b46c1);
+            border-radius: 50%;
+            box-shadow: 0 0 8px #b794f4;
+            animation: pulse-antenna 2s infinite ease-in-out;
+        }
+        @keyframes pulse-antenna {
+            0%, 100% { box-shadow: 0 0 8px #b794f4; }
+            50%      { box-shadow: 0 0 16px #d6bcfa; }
+        }
+
+        /* Cap */
+        .head {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 80px;
+            background: linear-gradient(145deg, #e2e8f0, #cbd5e0);
+            border-radius: 20px;
+            box-shadow:
+                inset 0 -4px 8px rgba(0,0,0,0.1),
+                0 4px 12px rgba(0,0,0,0.4);
+        }
+        .screen {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background: linear-gradient(145deg, #1a202c, #2d3748);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        /* Ochi */
+        .eyes {
+            position: absolute;
+            top: 18px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .eye {
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle at 30% 30%, #d6bcfa, #9f7aea);
+            border-radius: 50%;
+            box-shadow: 0 0 8px #b794f4;
+            transition: all 0.3s ease;
+        }
+
+        /* Gură */
+        .mouth {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 4px;
+            background: #b794f4;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 6px #b794f4;
+        }
+
+        /* Corp */
+        .body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 55px;
+            background: linear-gradient(145deg, #e2e8f0, #a0aec0);
+            border-radius: 25px 25px 20px 20px;
+            box-shadow:
+                inset 0 -4px 8px rgba(0,0,0,0.1),
+                0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        /* ─────────────────────────────────────────
+           STĂRI AVATAR
+           ───────────────────────────────────────── */
+        .avatar.idle {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-6px); }
+        }
+
+        .avatar.thinking .eye {
+            animation: blink-fast 0.6s infinite;
+        }
+        @keyframes blink-fast {
+            0%, 100% { transform: scaleY(1); }
+            50%      { transform: scaleY(0.2); }
+        }
+
+        .avatar.speaking .mouth {
+            animation: talk 0.3s infinite;
+            background: #f6e05e;
+            box-shadow: 0 0 10px #f6e05e;
+        }
+        @keyframes talk {
+            0%, 100% { height: 4px; width: 24px; }
+            50%      { height: 10px; width: 20px; }
+        }
+
+        .avatar.speaking .eye {
+            background: radial-gradient(circle at 30% 30%, #f6e05e, #d69e2e);
+            box-shadow: 0 0 10px #f6e05e;
+        }
+
+        /* Expresii temporare */
+        .avatar.blink .eye {
+            transform: scaleY(0.15);
+            transition: transform 0.12s ease;
+        }
+        .avatar.wink .eye.left {
+            width: 14px;
+            height: 2px;
+            border-radius: 2px;
+            background: #d6bcfa;
+            box-shadow: 0 0 6px #b794f4;
+            transform: translateY(6px);
+            transition: all 0.2s ease;
+        }
+        .avatar.wink .eye.right {
+            transform: scale(1.15);
+            box-shadow: 0 0 14px #b794f4;
+        }
+        .avatar.smile .mouth {
+            width: 26px;
+            height: 12px;
+            border-radius: 0 0 26px 26px;
+            background: #b794f4;
+            box-shadow: 0 0 10px #b794f4;
+        }
+
+        /* ─────────────────────────────────────────
+           CHAT BOX (demo)
+           ───────────────────────────────────────── */
+        .chat-demo {
+            width: 100%;
+            max-width: 420px;
+            height: 260px;
+            background: rgba(26, 16, 48, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(107, 70, 193, 0.4);
+            border: 1px solid rgba(159, 122, 234, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+        .chat-history::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-history::-webkit-scrollbar-thumb {
+            background: #4c3575;
+            border-radius: 3px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .message.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #9f7aea, #6b46c1);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.assistant {
+            align-self: flex-start;
+            background: #2d1b4e;
+            color: #e9d8fd;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Thinking dots */
+        .thinking {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            padding: 10px 14px;
+            align-self: flex-start;
+            background: #2d1b4e;
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+        }
+        .thinking .dot {
+            width: 6px;
+            height: 6px;
+            background: #9f7aea;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .thinking .dot:nth-child(2) { animation-delay: 0.2s; }
+        .thinking .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40%           { transform: scale(1);   opacity: 1; }
+        }
+
+        /* ─────────────────────────────────────────
+           INDICATOR "LIVE DEMO"
+           ───────────────────────────────────────── */
+        .live-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            padding: 6px 12px;
+            background: rgba(159, 122, 234, 0.15);
+            border: 1px solid rgba(159, 122, 234, 0.4);
+            border-radius: 20px;
+            font-size: 11px;
+            color: #d6bcfa;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(8px);
+        }
+        .live-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #68d391;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #68d391;
+            animation: live-pulse 1.5s infinite;
+        }
+        @keyframes live-pulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.4; }
+        }
+
+        /* ─────────────────────────────────────────
+           RESPONSIVE
+           ───────────────────────────────────────── */
+        @media (max-width: 480px) {
+            .title { font-size: 22px; }
+            .chat-demo { max-width: 95%; height: 220px; }
+            .back-btn { top: 12px; left: 12px; padding: 8px 14px; font-size: 13px; }
+            .live-badge { top: 12px; right: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Canvas fundal cu noduri -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Buton Înapoi -->
+<a href="index.html" class="back-btn">← Înapoi</a>
+
+<!-- Badge Live Demo -->
+<div class="live-badge">Demo live</div>
+
+<!-- Conținut principal -->
+<div class="page">
+    <h1 class="title">Bit — Asistentul Tău Virtual</h1>
+    <p class="subtitle">Prezentare interactivă · Simulare conversație</p>
+
+    <!-- Avatar -->
+    <div class="avatar-wrapper">
+        <div id="avatar" class="avatar idle">
+            <div class="antenna"></div>
+            <div class="head">
+                <div class="screen">
+                    <div class="eyes">
+                        <span class="eye left"></span>
+                        <span class="eye right"></span>
+                    </div>
+                    <div class="mouth"></div>
+                </div>
+            </div>
+            <div class="body"></div>
+        </div>
+    </div>
+
+    <!-- Chat demo -->
+    <div class="chat-demo">
+        <div id="chat-history" class="chat-history"></div>
+    </div>
+</div>
+
+<!-- Audio ascuns -->
+<audio id="throat-sound" src="./sound.wav" preload="auto"></audio>
+
+<script>
+/* ═══════════════════════════════════════════════
+   1. AVATAR CONTROLLER (clonă simplificată)
+   ═══════════════════════════════════════════════ */
+class DemoAvatar {
+    constructor() {
+        this.el = document.getElementById('avatar');
+        this.sound = document.getElementById('throat-sound');
+        this.isSpeaking = false;
+        this._startRandomExpressions();
+    }
+
+    _applyBase(state) {
+        this.el.className = `avatar ${state}`;
+    }
+    setIdle()     { this.isSpeaking = false; this._applyBase('idle'); }
+    setThinking() { this.isSpeaking = false; this._applyBase('thinking'); }
+    setSpeaking() { this.isSpeaking = true;  this._applyBase('speaking'); }
+
+    _tempClass(cls, ms) {
+        this.el.classList.add(cls);
+        setTimeout(() => this.el.classList.remove(cls), ms);
+    }
+
+    blink()  { if (!this.isSpeaking) this._tempClass('blink', 180); }
+    wink()   { if (!this.isSpeaking) this._tempClass('wink', 500); }
+    smile()  { this._tempClass('smile', 1200); }
+
+    clearThroat() {
+        try {
+            this.sound.currentTime = 0;
+            this.sound.volume = 0.35;
+            this.sound.play().catch(() => {});
+        } catch (e) {}
+        this.blink();
+        this.smile();
+    }
+
+    _startRandomExpressions() {
+        const loop = () => {
+            const delay = 3000 + Math.random() * 5000;
+            setTimeout(() => {
+                if (!this.isSpeaking) {
+                    const r = Math.random();
+                    if (r < 0.55) this.blink();
+                    else if (r < 0.75) {
+                        this.wink();
+                        if (Math.random() < 0.4) setTimeout(() => this.clearThroat(), 400);
+                    }
+                    else if (r < 0.9) this.smile();
+                    else { this.blink(); setTimeout(() => this.smile(), 200); }
+                }
+                loop();
+            }, delay);
+        };
+        loop();
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   2. CONVERSAȚIE HARDCODATĂ
+   ═══════════════════════════════════════════════ */
+const SCRIPT = [
+    {
+        q: "Salut, Bit! Cine ești?",
+        a: "Salut! Eu sunt Bit, asistentul tău virtual. Îmi place să învăț lucruri noi și să răspund la întrebări!"
+    },
+    {
+        q: "Cât face 7 ori 8?",
+        a: "Rezultatul este 56. Matematica e distractivă când o exersezi!"
+    },
+    {
+        q: "Care e capitala Franței?",
+        a: "Capitala Franței este Paris. Un oraș minunat, cu Turnul Eiffel!"
+    },
+    {
+        q: "Spune-mi o glumă!",
+        a: "De ce nu mănâncă elefanții mămăligă? Pentru că nimeni nu le dă."
+    },
+    {
+        q: "Ce poți face?",
+        a: "Pot răspunde la întrebări de cultură generală, rezolva calcule simple, spune glume și multe altele!"
+    }
+];
+
+/* ═══════════════════════════════════════════════
+   3. RUNNER CONVERSAȚIE
+   ═══════════════════════════════════════════════ */
+class ConversationRunner {
+    constructor(avatar, chatHistory) {
+        this.avatar = avatar;
+        this.chat = chatHistory;
+        this.index = 0;
+    }
+
+    _addMessage(role, text) {
+        const msg = document.createElement('div');
+        msg.className = `message ${role}`;
+        msg.textContent = text;
+        this.chat.appendChild(msg);
+        this.chat.scrollTop = this.chat.scrollHeight;
+        // trigger animation
+        requestAnimationFrame(() => msg.classList.add('visible'));
+        return msg;
+    }
+
+    _addThinking() {
+        const el = document.createElement('div');
+        el.className = 'thinking';
+        el.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+        this.chat.appendChild(el);
+        this.chat.scrollTop = this.chat.scrollHeight;
+        return el;
+    }
+
+    _wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async _playExchange(pair) {
+        // 1. Întrebarea utilizatorului
+        this._addMessage('user', pair.q);
+        await this._wait(600);
+
+        // 2. Bit gândește
+        this.avatar.setThinking();
+        const thinking = this._addThinking();
+        await this._wait(1400);
+
+        // 3. Răspunsul
+        thinking.remove();
+        this.avatar.setIdle();
+        this._addMessage('assistant', pair.a);
+
+        // 4. Își drege vocea + vorbește (simulat)
+        await this._wait(300);
+        this.avatar.clearThroat();
+        await this._wait(500);
+        this.avatar.setSpeaking();
+
+        // Durata "vorbirii" proporțională cu textul
+        const speakDuration = Math.max(1500, pair.a.length * 45);
+        await this._wait(speakDuration);
+
+        this.avatar.setIdle();
+        await this._wait(1200);
+    }
+
+    async start() {
+        // Mic delay inițial
+        await this._wait(800);
+
+        while (true) {
+            await this._playExchange(SCRIPT[this.index]);
+
+            this.index++;
+            if (this.index >= SCRIPT.length) {
+                // Reset: curățăm și o luăm de la capăt
+                await this._wait(2000);
+                this.chat.innerHTML = '';
+                this.index = 0;
+                await this._wait(600);
+            }
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   4. FUNDAL CU NODURI MIȘCĂTOARE
+   ═══════════════════════════════════════════════ */
+class NodeBackground {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.nodes = [];
+        this.mouse = { x: null, y: null };
+        this._resize();
+        this._init();
+        this._bindEvents();
+        this._loop();
+    }
+
+    _resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+
+    _init() {
+        const count = Math.min(60, Math.floor(window.innerWidth / 22));
+        this.nodes = [];
+        for (let i = 0; i < count; i++) {
+            this.nodes.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: (Math.random() - 0.5) * 0.4,
+                r: 1 + Math.random() * 1.5
+            });
+        }
+    }
+
+    _bindEvents() {
+        window.addEventListener('resize', () => {
+            this._resize();
+            this._init();
+        });
+        window.addEventListener('mousemove', e => {
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
+        });
+        window.addEventListener('mouseout', () => {
+            this.mouse.x = null;
+            this.mouse.y = null;
+        });
+    }
+
+    _loop() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Update + draw nodes
+        for (const n of this.nodes) {
+            n.x += n.vx;
+            n.y += n.vy;
+
+            if (n.x < 0 || n.x > w) n.vx *= -1;
+            if (n.y < 0 || n.y > h) n.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(159, 122, 234, 0.6)';
+            ctx.fill();
+        }
+
+        // Linii între noduri apropiate
+        for (let i = 0; i < this.nodes.length; i++) {
+            for (let j = i + 1; j < this.nodes.length; j++) {
+                const dx = this.nodes[i].x - this.nodes[j].x;
+                const dy = this.nodes[i].y - this.nodes[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < 130) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.nodes[i].x, this.nodes[i].y);
+                    ctx.lineTo(this.nodes[j].x, this.nodes[j].y);
+                    const alpha = (1 - dist / 130) * 0.25;
+                    ctx.strokeStyle = `rgba(159, 122, 234, ${alpha})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Linii spre mouse
+        if (this.mouse.x !== null) {
+            for (const n of this.nodes) {
+                const dx = n.x - this.mouse.x;
+                const dy = n.y - this.mouse.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 180) {
+                    ctx.beginPath();
+                    ctx.moveTo(n.x, n.y);
+                    ctx.lineTo(this.mouse.x, this.mouse.y);
+                    const alpha = (1 - dist / 180) * 0.35;
+                    ctx.strokeStyle = `rgba(214, 188, 250, ${alpha})`;
+                    ctx.lineWidth = 0.6;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        requestAnimationFrame(() => this._loop());
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   5. BOOTSTRAP
+   ═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+    const avatar = new DemoAvatar();
+    const chatHistory = document.getElementById('chat-history');
+    const runner = new ConversationRunner(avatar, chatHistory);
+
+    new NodeBackground(document.getElementById('bg-canvas'));
+
+    runner.start();
+});
+</script>
+</body>
+</html>

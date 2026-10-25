@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudioProiecteDigitale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f;
+    --fg:#f5f5f7;
+    --muted:#8a8a99;
+    --accent:#7c5cff;
+    --accent2:#00e0c6;
+    --accent3:#ff5c8a;
+    --border:rgba(255,255,255,0.08);
+    --spotlight:rgba(124,92,255,0.18);
+    --dim:#3a3a44;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{overflow:hidden;height:100%}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--fg);
+    cursor:none;
+    -webkit-font-smoothing:antialiased;
+    transition:background .6s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  ::selection{background:var(--accent);color:#fff}
+
+  /* ---------- Spotlight ---------- */
+  .spotlight{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%), var(--spotlight), transparent 60%);
+  }
+
+  /* ---------- Cursor ---------- */
+  .cursor{
+    position:fixed;top:0;left:0;width:33px;height:33px;
+    border:1.5px solid rgba(255,255,255,.6);
+    border-radius:50%;pointer-events:none;z-index:9999;
+    transform:translate(-50%,-50%);
+    transition:width .3s,height .3s,background .3s,border-color .3s;
+    mix-blend-mode:difference;
+  }
+  /*.cursor.hover{width:60px;height:60px;background:rgba(255,255,255,.15);border-color:transparent}*/
+  .cursor.hover{width:60px;height:60px;background:#fff;border-color:transparent}
+  .cursor-dot{
+    position:fixed;top:0;left:0;width:5px;height:5px;
+    background:#fff;border-radius:50%;pointer-events:none;z-index:10000;
+    transform:translate(-50%,-50%);
+    mix-blend-mode:difference;
+  }
+
+  /* ---------- Mesh ---------- */
+  .mesh{position:fixed;inset:0;z-index:-2;overflow:hidden}
+  .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;animation:float 20s ease-in-out infinite;transition:background .6s ease}
+  .blob.b1{width:520px;height:520px;background:var(--accent);top:-10%;left:-10%}
+  .blob.b2{width:460px;height:460px;background:var(--accent2);top:40%;right:-10%;animation-delay:-7s}
+  .blob.b3{width:400px;height:400px;background:var(--accent3);bottom:-15%;left:30%;animation-delay:-14s}
+  @keyframes float{
+    0%,100%{transform:translate(0,0) scale(1)}
+    33%{transform:translate(80px,-60px) scale(1.1)}
+    66%{transform:translate(-60px,80px) scale(.95)}
+  }
+  .grain{
+    position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.08;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- Nav ---------- */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:22px 48px;
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    background:transparent;
+    border-bottom:1px solid var(--border);
+  }
+  .logo{font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;cursor:none}
+  .logo-dot{width:9px;height:9px;border-radius:50%;background:var(--accent2);animation:pulse 2s ease-in-out infinite;transition:background .6s}
+  @keyframes pulse{50%{opacity:.4;transform:scale(.8)}}
+  .nav-links{display:flex;gap:32px;list-style:none}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .3s;position:relative;cursor:none}
+  .nav-links a:hover, .nav-links a.active{color:var(--fg)}
+  .nav-links a::after{content:'';position:absolute;bottom:-6px;left:0;width:0;height:1px;background:var(--accent2);transition:width .3s,background .6s}
+  .nav-links a:hover::after{width:100%}
+
+  /* ---------- Back button în nav ---------- */
+  .back-btn{
+    display:none;
+    align-items:center;gap:8px;
+    padding:10px 20px;
+    border-radius:100px;
+    background:rgba(255,255,255,.06);
+    border:1px solid var(--border);
+    color:var(--fg);
+    font-family:inherit;font-size:13px;font-weight:500;
+    cursor:none;
+    transition:background .3s, transform .3s;
+    backdrop-filter:blur(10px);
+  }
+  .back-btn:hover{background:rgba(255,255,255,.14);transform:translateX(-2px)}
+  body.contact-open .back-btn{display:inline-flex}
+  body.contact-open .nav-links{display:none}
+
+  /* ---------- Theme dots ---------- */
+  .theme-dots{display:flex;gap:10px;align-items:center}
+  .theme-dot{
+    width:12px;height:12px;border-radius:50%;
+    background:var(--dim);
+    cursor:none;
+    transition:background .3s,transform .3s;
+    border:none;padding:0;
+    position:relative;
+  }
+  /* zonă de atingire mai mare pe mobil, fără să schimbe aspectul */
+  .theme-dot::after{content:'';position:absolute;inset:-6px;border-radius:50%}
+  .theme-dot:hover{transform:scale(1.15)}
+  .theme-dot.active{background:var(--accent2)}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:fixed;inset:0;
+    display:flex;justify-content:center;align-items:center;
+    z-index:5;
+    pointer-events:none;
+  }
+  .hero-inner{
+    font-family:'Space Grotesk';font-weight:500;
+    font-size:clamp(18px,4.8vw,68px);
+    line-height:1.02;letter-spacing:-.03em;
+    display:flex;flex-wrap:wrap;justify-content:center;
+    column-gap:.32em;row-gap:.05em;
+    max-width:100%;position:relative;
+    padding:0 20px;
+	pointer-events:auto;
+  }
+  .hero-word{display:inline-flex;white-space:nowrap}
+  .hero-letter{
+    display:inline-block;
+    background:linear-gradient(120deg,var(--accent),var(--accent2),var(--accent3));
+    background-size:200% 200%;
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:shine 6s linear infinite;
+    will-change:opacity;
+    transition:opacity .3s ease, transform .35s cubic-bezier(.2,.8,.2,1), filter .35s ease;
+  }
+
+	.hero-word:has(.hero-letter:hover) .hero-letter:not(:hover){filter:blur(3px);opacity:.4}
+	.hero-letter:hover{transform:perspective(300px) rotateY(20deg) scale(2.5)}
+
+  
+  @keyframes shine{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+
+  /* ---------- Titlu vertical DREAPTA ---------- */
+  .vertical-title{
+    position:fixed;
+    right:48px;
+    top:120px;
+    z-index:60;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    pointer-events:none;
+  }
+  .v-word{display:flex;flex-direction:column;align-items:center;margin-bottom:22px}
+.v-slot{
+  font-family:'Space Grotesk';font-weight:500;
+  font-size:clamp(22px,2.2vw,30px);
+  line-height:1.1;
+  background:linear-gradient(120deg,var(--accent),var(--accent2),var(--accent3));
+  background-size:200% 200%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:shine 6s linear infinite;
+  opacity:0;
+  transform:translateY(12px);
+  transition:opacity .35s ease, transform .35s ease;
+  will-change:opacity, transform;
+}
+.v-slot.revealed{
+  opacity:1;
+  transform:translateY(0);
+}
+
+  /* Clone zburătoare */
+  .flying-letter{
+    position:fixed;top:0;left:0;
+    font-family:'Space Grotesk';font-weight:500;
+    line-height:1;
+    pointer-events:none;z-index:200;
+    background:linear-gradient(120deg,var(--accent),var(--accent2),var(--accent3));
+    background-size:200% 200%;
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    will-change:transform;
+    transform-origin:top left;
+  }
+
+  /* ---------- Projects panel ---------- */
+  .projects-panel{
+    position:fixed;top:50%;left:48px;
+    transform:translate(-20px, -50%);
+    z-index:50;opacity:0;pointer-events:none;
+    transition:opacity .5s ease .2s, transform .5s ease .2s;
+  }
+  body.projects-open .projects-panel{
+    opacity:1;transform:translate(0, -50%);pointer-events:auto;
+  }
+  .projects-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+.project-item {
+  font-family: 'Space Grotesk';
+  font-size: clamp(14px, 1.5vw, 19px);
+  font-weight: 400;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: none;
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: -0.015em;
+  position: relative;
+  transition: color .3s, transform .3s;
+}
+
+.project-item:hover,
+.project-item.active {
+  color: var(--fg);
+  transform: translateX(6px);
+}
+/* Indiciul textual care apare la hover în dreapta */
+.project-item::after {
+  content: " [click]"; /* Poți schimba cu " → deschide" sau orice alt text dorești */
+  font-size: 0.75em;
+  font-weight: 500;
+  color: var(--accent2); /* Preia culoarea de accent secundară a temei */
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  margin-left: 8px;
+  pointer-events: none;
+}
+
+/* La hover, textul devine vizibil și glisează fin spre poziția finală */
+.project-item:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+  /* delimitator între proiectele reale și placeholdere */
+  .projects-divider{
+    height:1px;flex:none;
+    background:linear-gradient(90deg, transparent, var(--muted) 28%, var(--muted) 72%, transparent);
+    opacity:.5;
+    pointer-events:none;
+  }
+
+  /* Noul stil pentru cutia de descriere (ca în imagine) */
+  .project-desc-panel {
+    position: fixed;
+    top: 50%;
+    left: 55%;
+    transform: translate(-50%, -45%); /* Ușor mai jos pentru animație */
+    width: 100%;
+    max-width: 680px;
+    background: rgba(15, 20, 35, 0.45); 
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 24px 32px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    
+    /* Animație de apariție */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    z-index: 45;
+
+    /* siguranță pe ecrane joase: scroll intern în loc de depășire */
+    max-height: min(86vh, 760px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .project-desc-panel::-webkit-scrollbar{width:6px}
+  .project-desc-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+  .project-desc-panel.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+  }
+
+
+/* ============================================
+   LANSARE MODERNĂ a cadrului de descriere
+   ============================================ */
+/* 1. lansare din punct, stil macOS */
+.project-desc-panel{
+  opacity:0;
+  transform:translate(-50%,-50%) scale(.08);
+  border-radius:50%;                    /* pornește ca un punct, nu o cutie mică */
+  filter:blur(12px);
+  transition:
+    opacity .3s ease,
+    transform .5s cubic-bezier(.16,1,.3,1),
+    border-radius .55s cubic-bezier(.16,1,.3,1),
+    filter .4s ease;
+}
+.project-desc-panel.visible{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+  border-radius:8px;
+  filter:blur(0);
+}
+
+/* 2. linia de accent care "desenează" sus */
+.project-desc-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:8px 8px 0 0;
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .55s cubic-bezier(.2,.8,.2,1) .08s;
+}
+.project-desc-panel.visible::before{transform:scaleX(1)}
+
+/* 3. conținutul intră în cascadă */
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(10px);filter:blur(3px)}
+  to{opacity:1;transform:none;filter:none}
+}
+.project-desc-content > *{animation:riseIn .5s cubic-bezier(.2,.8,.2,1) both}
+.project-desc-content > *:nth-child(1){animation-delay:.08s}
+.project-desc-content > *:nth-child(2){animation-delay:.14s}
+.project-desc-content > *:nth-child(3){animation-delay:.2s}
+.project-desc-content > *:nth-child(4){animation-delay:.26s}
+.project-desc-content > *:nth-child(5){animation-delay:.32s}
+.project-desc-content > *:nth-child(6){animation-delay:.38s}
+.project-desc-content > *:nth-child(n+7){animation-delay:.44s}
+
+
+
+  .project-desc-content {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #a0a0b0; /* Text gri-albăstrui */
+    text-align: left;
+  }
+
+  .project-desc-content p {
+    margin-bottom: 16px;
+  }
+
+  .project-desc-content strong {
+    color: #ffffff; /* Bold alb */
+    font-weight: 600;
+  }
+
+  .project-desc-content .title {
+    display: block;
+    margin-bottom: 20px;
+    margin-top: 8px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+
+  .project-desc-content ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+
+  .project-desc-content li {
+    position: relative;
+    padding-left: 16px;
+    margin-bottom: 8px;
+  }
+
+  .project-desc-content li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #a0a0b0; /* Bullet point */
+  }
+  body.projects-open .projects-description.visible{opacity:.85}
+
+  /* ============================================
+     CONTACT — compact, dark-blue, fără hero
+     ============================================ */
+  .contact-page{
+    position:fixed;inset:0;z-index:80;
+    display:flex;flex-direction:column;
+    opacity:0;pointer-events:none;
+    transition:opacity .5s ease;
+    background:#0a0f24; /* dark-blue */
+    padding:120px 48px 90px;
+  }
+  body.contact-open .contact-page{opacity:1;pointer-events:auto}
+  body.contact-open .hero,
+  body.contact-open .vertical-title,
+  body.contact-open .projects-panel,
+  body.contact-open .projects-description{
+    opacity:0 !important;pointer-events:none !important;
+  }
+
+  .contact-header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    gap:24px;flex-wrap:wrap;
+    padding-bottom:24px;
+    border-bottom:1px solid rgba(255,255,255,0.12);
+    opacity:0;transform:translateY(15px);
+    transition:opacity .6s ease .2s, transform .6s ease .2s;
+  }
+  body.contact-open .contact-header{opacity:1;transform:translateY(0)}
+  .contact-title{
+    font-family:'Space Grotesk';font-weight:500;
+    font-size:clamp(24px,3vw,36px);
+    letter-spacing:-.03em;line-height:1.1;
+    color:#ffffff;
+  }
+  .contact-title .gradient{
+    background:linear-gradient(120deg,var(--accent),var(--accent2),var(--accent3));
+    background-size:200% 200%;
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:shine 6s linear infinite;
+  }
+  .contact-sub{
+    color:rgba(255,255,255,0.6);font-size:13px;max-width:320px;line-height:1.5;
+    text-align:right;
+  }
+
+  .contact-body{
+    flex:1;display:grid;grid-template-columns:280px 1fr;
+    gap:64px;padding-top:36px;min-height:0;
+  }
+
+  .contact-info{display:flex;flex-direction:column;gap:20px;font-size:13.5px}
+  .contact-info-block{opacity:0;transform:translateY(12px);transition:opacity .5s ease, transform .5s ease}
+  body.contact-open .contact-info-block{opacity:1;transform:translateY(0)}
+  body.contact-open .contact-info-block:nth-child(1){transition-delay:.35s}
+  body.contact-open .contact-info-block:nth-child(2){transition-delay:.45s}
+  body.contact-open .contact-info-block:nth-child(3){transition-delay:.55s}
+  .contact-label{
+    font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+    color:rgba(255,255,255,0.45);margin-bottom:4px;font-weight:600;
+  }
+  .contact-value{
+    font-family:'Space Grotesk';font-size:15px;font-weight:400;
+    color:#ffffff;text-decoration:none;cursor:none;transition:color .3s;
+    display:inline-block;word-break:break-word;
+  }
+  .contact-value:hover{color:var(--accent2)}
+
+  .contact-form{display:flex;flex-direction:column;gap:18px;max-width:560px;width:100%}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .field{
+    position:relative;
+    opacity:0;transform:translateY(12px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  body.contact-open .field{opacity:1;transform:translateY(0)}
+  body.contact-open .field:nth-child(1){transition-delay:.3s}
+  body.contact-open .field:nth-child(2){transition-delay:.4s}
+  body.contact-open .field:nth-child(3){transition-delay:.5s}
+  body.contact-open .field:nth-child(4){transition-delay:.6s}
+
+  .field input,
+  .field textarea{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    color:#ffffff;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    padding:10px 0;
+    outline:none;
+    cursor:none;
+    transition:border-color .3s;
+    resize:none;
+  }
+  .field textarea{min-height:60px;line-height:1.5}
+  .field input::placeholder,
+  .field textarea::placeholder{color:rgba(255,255,255,0.35);transition:color .3s}
+  .field input:focus::placeholder,
+  .field textarea:focus::placeholder{color:rgba(255,255,255,0.6)}
+  .field input:focus,
+  .field textarea:focus{border-bottom-color:var(--accent2)}
+
+  .field::after{
+    content:'';position:absolute;bottom:0;left:0;
+    width:0;height:1px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));
+    transition:width .4s cubic-bezier(.2,.9,.2,1);
+  }
+  .field:focus-within::after{width:100%}
+
+  .submit-btn{
+    align-self:flex-start;margin-top:8px;
+    padding:14px 32px;border-radius:100px;border:none;
+    background:#ffffff;color:#0a0f24;
+    font-family:inherit;font-size:13.5px;font-weight:600;
+    cursor:none;
+    transition:all .35s cubic-bezier(.2,.9,.2,1);
+    display:inline-flex;align-items:center;gap:10px;
+    opacity:0;transform:translateY(12px);
+  }
+  body.contact-open .submit-btn{opacity:1;transform:translateY(0);transition-delay:.7s}
+  .submit-btn:hover{transform:translateY(-2px);box-shadow:0 20px 40px -10px rgba(255,255,255,.25)}
+  .submit-btn:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none}
+  .submit-btn .arrow{transition:transform .35s}
+  .submit-btn:hover .arrow{transform:translateX(4px)}
+
+  /* Status toast */
+  .form-status{
+    position:fixed;bottom:110px;left:50%;
+    transform:translateX(-50%) translateY(10px);
+    padding:12px 24px;border-radius:100px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,0.12);
+    backdrop-filter:blur(20px);
+    font-size:13px;color:var(--accent2);
+    opacity:0;pointer-events:none;
+    transition:opacity .4s, transform .4s;
+    z-index:100;
+  }
+  .form-status.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .form-status.error{color:#ff7a90}
+
+  footer{
+    position:fixed;bottom:0;left:0;right:0;
+    padding:40px 48px;
+ 
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:16px;color:var(--muted);font-size:13px;
+    z-index:2;
+  }
+  body.contact-open footer{opacity:0;pointer-events:none;transition:opacity .4s}
+  footer a{color:var(--muted);text-decoration:none;transition:color .3s;cursor:none}
+  footer a:hover{color:var(--fg)}
+
+/* ==================== RESPONSIVE ==================== */
+
+/* ---- Tablete / ferestre mici (≤900px) ---- */
+@media(max-width:900px){
+  .contact-page{padding:110px 24px 80px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .contact-body{grid-template-columns:1fr;gap:32px;align-content:start}
+  .contact-sub{text-align:left}
+
+  /* panoul de descriere rămâne centrat, dar nu mai depășește spațiul dintre
+     lista de proiecte (stânga) și titlul vertical (dreapta) */
+  .project-desc-panel{
+    left:52%;
+    width:min(680px,52vw);
+    padding:20px 24px;
+  }
+}
+
+/* ---- Telefoane (≤768px) ---- */
+@media(max-width:768px){
+  /* cursorul custom rămâne doar pe desktop */
+  body{cursor:auto}
+  .cursor,.cursor-dot{display:none}
+  *,*::before,*::after{cursor:auto !important}
+
+  /* fără întârzierea de ~300ms la tap pe iOS */
+  a,button,input,textarea,.theme-dot,.project-item{touch-action:manipulation}
+
+  /* --- Nav compact; linkurile rămân VIZIBILE ca navigarea să funcționeze --- */
+  nav{padding:12px 16px}
+  .logo{font-size:17px}
+  .nav-links{display:flex;gap:16px}
+  .nav-links a{font-size:13px;padding:8px 2px}
+  .theme-dots{gap:8px}
+  .theme-dot{width:10px;height:10px}
+  .back-btn{padding:8px 16px;font-size:12px}
+
+  /* --- Hero: cuvintele pot trece pe două rânduri, fără tăiere --- */
+  .hero-inner{font-size:clamp(30px,9vw,54px)}
+
+  /* --- Titlul „vertical" devine orizontal, deasupra listei --- */
+  .vertical-title{
+    left:20px;right:auto;top:74px;
+    flex-direction:row;gap:14px;
+  }
+  .v-word{flex-direction:row;margin-bottom:0}
+  .v-slot{font-size:clamp(17px,4.4vw,21px)}
+
+  /* --- Lista de proiecte: sus; zona de jos rămâne rezervată descrierii --- */
+  .projects-panel{
+    left:20px;right:20px;top:112px;
+    transform:none;
+    max-height:calc(70vh - 250px);
+    max-height:calc(70dvh - 190px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+  }
+  body.projects-open .projects-panel{transform:none}
+  .projects-panel::-webkit-scrollbar{width:5px}
+  .projects-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+  .projects-list{gap:9px}
+  .project-item{font-size:clamp(16px,4.2vw,19px);padding:5px 0}
+
+  /* vechea descriere de hover rămâne ascunsă pe mobil */
+  .projects-description{display:none}
+
+  /* --- Descrierea proiectului: panou jos, deasupra footerului,
+         nu se mai suprapune cu lista --- */
+  .project-desc-panel{
+    top:auto;left:16px;right:16px;bottom:64px;
+    width:auto;max-width:none;
+    transform:translateY(16px);
+    max-height:30vh;max-height:30dvh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:16px 18px;
+    scrollbar-width:thin;
+  }
+  .project-desc-panel.visible{transform:translateY(0)}
+  .project-desc-content{font-size:13px;line-height:1.55}
+  .project-desc-content p{margin-bottom:12px}
+  .project-desc-content li{margin-bottom:6px}
+
+  /* --- Contact --- */
+  .contact-page{padding:92px 20px 40px}
+  .contact-body{gap:26px;padding-top:24px}
+  .contact-info{flex-direction:row;flex-wrap:wrap;gap:18px 44px}
+  .field input,.field textarea{font-size:16px} /* previne zoom-ul automat pe iOS */
+  .form-row{grid-template-columns:1fr;gap:16px}
+  .submit-btn{align-self:stretch;justify-content:center}
+
+  .form-status{bottom:90px;left:16px;right:16px;transform:translateY(10px);text-align:center}
+  .form-status.show{transform:translateY(0)}
+
+  /* --- Footer compact --- */
+  footer{padding:13px 16px;font-size:12px;gap:10px}
+}
+
+/* ---- Telefoane mici (≤480px) ---- */
+@media(max-width:480px){
+  nav{padding:10px 12px}
+  .logo{font-size:16px}
+  .nav-links{gap:12px}
+  .nav-links a{font-size:12.5px}
+  .theme-dots{gap:6px}
+  .theme-dot{width:9px;height:9px}
+
+  .vertical-title{left:16px;top:70px;gap:10px}
+  .projects-panel{left:16px;right:16px;top:108px}
+  .project-desc-panel{left:12px;right:12px;bottom:60px;padding:14px 16px}
+
+  footer{padding:12px;font-size:11.5px}
+}
+
+/* ---- Telefoane în landscape (ecrane foarte joase) ---- */
+@media(max-width:900px) and (max-height:480px){
+  .vertical-title{top:64px}
+  .projects-panel{
+    top:98px;
+    max-height:calc(58vh - 200px);
+    max-height:calc(58dvh - 150px);
+  }
+  .project-desc-panel{bottom:54px;max-height:36vh;max-height:36dvh}
+  .contact-page{padding:84px 20px 32px}
+}
+
+/* numele "în decriptare" capătă culoarea accentului temei */
+.project-item.scrambling{color:var(--accent2)}
+
+
+
+
+/* Indentare și bullet automat pentru sub-proiectele din MaD-Suite */
+.project-item.sub-project {
+  padding-left: 15px;
+  font-size: 0.95em;
+}
+
+.project-item.sub-project::before {
+  content: "• ";
+  margin-right: 6px;
+  color: #666;
+}
+</style>
+</head>
+<body>
+
+<div class="cursor"></div>
+<div class="cursor-dot"></div>
+<div class="spotlight"></div>
+
+<div class="mesh">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+<div class="grain"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="logo" id="logoHome"><span class="logo-dot"></span>studio</div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" id="projectsLink">Proiecte</a></li>
+    <li><a href="#" id="contactLink">Contact</a></li>
+  </ul>
+  <button class="back-btn" id="backBtn">← </button>
+  <div class="theme-dots" id="themeDots"></div>
+</nav>
+
+<!-- Hero -->
+<div class="hero" id="hero">
+  <div class="hero-inner" id="heroInner" aria-label="proiecte digitale"></div>
+</div>
+ 
+<!-- Titlu vertical DREAPTA -->
+<div class="vertical-title" id="verticalTitle">
+  <div class="v-word" data-word="proiecte"></div>
+  <div class="v-word" data-word="digitale"></div>
+</div>
+
+<!-- Proiecte -->
+<aside class="projects-panel" id="projectsPanel">
+  <ul class="projects-list" id="projectsList">
+    <li><a href="madsuite.html" class="project-item" data-desc="...">MaD-Suite:</a></li>
+    <li><a href="#" class="project-item sub-project" data-desc="...">MaD-Mail</a></li>
+    <li><a href="oais.html" class="project-item sub-project" data-desc="...">MaD-OAIS</a></li>
+    <li><a href="ocfl.html" class="project-item sub-project" data-desc="...">MaD-OCFL</a></li>
+    <li><a href="derivate.html" class="project-item sub-project" data-desc="...">MaD-Derivator</a></li>
+    <li><a href="Test_imagini/index_sip.html" class="project-item sub-project" data-desc="...">MaD-Generator SIP</a></li>
+
+    <li class="projects-divider" aria-hidden="true"></li>
+        
+    <li><a href="bit.html" class="project-item" data-desc="...">Bit asistent AI</a></li>
+    <li><a href="https://remediarium.netlify.app" class="project-item" data-desc="...">Remediarium</a></li>
+    <li><a href="https://epsaltire.netlify.app" class="project-item" data-desc="...">ePsaltire</a></li>
+    <li><a href="#" class="project-item" data-desc="...">Secky</a></li>
+  </ul>
+</aside>
+
+<!-- Noul panou de descriere (inițial ascuns) -->
+<div class="project-desc-panel" id="projectDescPanel">
+  <div class="project-desc-content" id="projectDescContent">
+    <!-- Conținutul va fi injectat aici prin JS -->
+  </div>
+</div>
+
+<div class="projects-description" id="projectsDesc"></div>
+
+<!-- Contact -->
+<div class="contact-page" id="contactPage">
+  <header class="contact-header">
+    <h1 class="contact-title">Contact <span class="gradient">·</span></h1>
+    <p class="contact-sub">Spune-mi despre proiectul tău.</p>
+  </header>
+
+  <div class="contact-body">
+    <aside class="contact-info">
+      <div class="contact-info-block">
+        <div class="contact-label">Email</div>
+        <a href="mailto:ateliergrafic@gmail.com" class="contact-value">Outlook</a>
+      </div>
+      <div class="contact-info-block">
+        <div class="contact-label">Locație</div>
+        <div class="contact-value">Timișoara, România</div>
+      </div>
+    </aside>
+
+    <form class="contact-form" id="contactForm" novalidate>
+      <div class="form-row">
+        <div class="field">
+          <input type="text" name="name" placeholder="Numele tău" required autocomplete="name" />
+        </div>
+        <div class="field">
+          <input type="email" name="email" placeholder="Email" required autocomplete="email" />
+        </div>
+      </div>
+      <div class="field">
+        <input type="text" name="subject" placeholder="Subiect" />
+      </div>
+      <div class="field">
+        <textarea name="message" placeholder="Spune-mi despre proiectul tău..." required></textarea>
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">
+        Trimite mesajul
+        <span class="arrow">→</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="form-status" id="formStatus"></div>
+
+<footer>
+ 
+
+</footer>
+
+<script>
+  /* ============================================
+     1. CURSOR + SPOTLIGHT
+     ============================================ */
+  const cursor = document.querySelector('.cursor');
+  const dot = document.querySelector('.cursor-dot');
+  const spotlight = document.querySelector('.spotlight');
+  let mx = 0, my = 0, cx = 0, cy = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.left = mx + 'px';
+    dot.style.top = my + 'px';
+    spotlight.style.setProperty('--mx', mx + 'px');
+    spotlight.style.setProperty('--my', my + 'px');
+  });
+
+  (function loop(){
+    cx += (mx - cx) * 0.15;
+    cy += (my - cy) * 0.15;
+    cursor.style.left = cx + 'px';
+    cursor.style.top = cy + 'px';
+    requestAnimationFrame(loop);
+  })();
+
+  /* ============================================
+     2. SUNET
+     ============================================ */
+  let audioCtx = null;
+  function ensureAudio(){
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e) { audioCtx = null; }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+let lastTick = 0;
+
+function playTick() {
+  ensureAudio();
+  if (!audioCtx) return;
+
+  const now = audioCtx.currentTime;
+
+  // anti-spam
+  if (now - lastTick < 0.04) return;
+  lastTick = now;
+
+  // mici variații pentru un sunet mai natural
+  const presets = [
+    { f1: 2600, f2: 5200 },
+    { f1: 2750, f2: 5500 },
+    { f1: 2450, f2: 4900 }
+  ];
+
+  const p = presets[Math.floor(Math.random() * presets.length)];
+
+  const master = audioCtx.createGain();
+  master.connect(audioCtx.destination);
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "highpass";
+  filter.frequency.value = 4000;
+  filter.Q.value = 10;
+
+  filter.connect(master);
+
+  const osc1 = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+
+  osc1.type = "triangle";
+  osc2.type = "square";
+
+  osc1.frequency.setValueAtTime(p.f1, now);
+  osc1.frequency.exponentialRampToValueAtTime(
+    p.f1 * 0.7,
+    now + 0.018
+  );
+
+  osc2.frequency.setValueAtTime(p.f2, now);
+
+  const gain = audioCtx.createGain();
+
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(
+    0.03,
+    now + 0.002
+  );
+  gain.gain.exponentialRampToValueAtTime(
+    0.0001,
+    now + 0.028
+  );
+
+  osc1.connect(gain);
+  osc2.connect(gain);
+
+  gain.connect(filter);
+
+  osc1.start(now);
+  osc2.start(now);
+
+  osc1.stop(now + 0.03);
+  osc2.stop(now + 0.02);
+}
+  document.addEventListener('click', ensureAudio, { once: true });
+  function attachHoverSound(el, freq){ el.addEventListener('mouseenter', () => playTick(freq)); }
+
+  /* ============================================
+     3. THEME
+     ============================================ */
+  const themes = [
+    { accent:'#7c5cff', accent2:'#00e0c6', accent3:'#ff5c8a', spot:'rgba(124,92,255,0.18)' },
+    { accent:'#22d3ee', accent2:'#a78bfa', accent3:'#f472b6', spot:'rgba(34,211,238,0.18)' },
+    { accent:'#f97316', accent2:'#ef4444', accent3:'#facc15', spot:'rgba(249,115,22,0.18)' },
+    { accent:'#10b981', accent2:'#06b6d4', accent3:'#a3e635', spot:'rgba(16,185,129,0.18)' },
+    { accent:'#e5e5e5', accent2:'#a3a3a3', accent3:'#737373', spot:'rgba(229,229,229,0.10)' },
+  ];
+  const root = document.documentElement;
+  const dotsContainer = document.getElementById('themeDots');
+  let themeIndex = parseInt(localStorage.getItem('themeIndex') || '0', 10);
+  if (isNaN(themeIndex) || themeIndex < 0 || themeIndex >= themes.length) themeIndex = 0;
+
+  themes.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-dot';
+    btn.setAttribute('aria-label', 'Tema ' + (i + 1));
+    btn.addEventListener('click', () => setTheme(i));
+    dotsContainer.appendChild(btn);
+  });
+  const dotEls = dotsContainer.querySelectorAll('.theme-dot');
+
+  function setTheme(i){
+    themeIndex = i;
+    const t = themes[i];
+    root.style.setProperty('--accent',  t.accent);
+    root.style.setProperty('--accent2', t.accent2);
+    root.style.setProperty('--accent3', t.accent3);
+    root.style.setProperty('--spotlight', t.spot);
+    dotEls.forEach((d, j) => d.classList.toggle('active', j === i));
+    localStorage.setItem('themeIndex', i);
+  }
+  setTheme(themeIndex);
+  dotEls.forEach(d => attachHoverSound(d, 1800));
+
+  /* ============================================
+     4. FLIP — titlu orizontal ↔ vertical
+     ============================================ */
+  const heroInner = document.getElementById('heroInner');
+  const verticalTitle = document.getElementById('verticalTitle');
+  const projectsLink = document.getElementById('projectsLink');
+  const projectsDesc = document.getElementById('projectsDesc');
+
+  const TEXT = 'proiecte digitale';
+
+  // Construim hero pe cuvinte (litere individuale; pe ecrane mici
+  // cuvintele trec pe rândul următor în loc să se taie)
+  const heroLetters = [];
+  TEXT.split(' ').forEach(word => {
+    const wordWrap = document.createElement('span');
+    wordWrap.className = 'hero-word';
+    word.split('').forEach(ch => {
+      const span = document.createElement('span');
+      span.className = 'hero-letter';
+      span.textContent = ch;
+      wordWrap.appendChild(span);
+      heroLetters.push(span);
+    });
+    heroInner.appendChild(wordWrap);
+  });
+
+  // Construim sloturile verticale
+  const wordEls = verticalTitle.querySelectorAll('.v-word');
+  const vSlots = [];
+  wordEls.forEach(wordEl => {
+    const word = wordEl.dataset.word;
+    const slotsForWord = [];
+    word.split('').forEach(ch => {
+      const slot = document.createElement('span');
+      slot.className = 'v-slot';
+      slot.textContent = ch;
+      wordEl.appendChild(slot);
+      slotsForWord.push(slot);
+    });
+    vSlots.push(slotsForWord);
+  });
+  const allSlots = vSlots.flat();
+  const heroLetterEls = heroLetters; // spațiul dintre cuvinte e asigurat de column-gap
+
+// notă muzicală parametrizată (playTick ignore frecvența, deci avem nevoie de una proprie)
+function playNote(freq){
+  ensureAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  if (now - lastTick < 0.04) return;   // anti-spam, identic cu playTick
+  lastTick = now;
+
+  const master = audioCtx.createGain();
+  master.connect(audioCtx.destination);
+
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.05, now + 0.004);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+
+  const osc = audioCtx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  osc.connect(gain); gain.connect(master);
+  osc.start(now); osc.stop(now + 0.13);
+}
+
+// scară pentatonică: 16 note, câte una per literă
+const scale = [0,2,4,7,9,12,14,16,19,21,24,26,28,31,33,36];
+heroLetters.forEach((l, i) => {
+  l.addEventListener('mouseenter', () => playNote(523.25 * Math.pow(2, scale[i] / 12)));
+});
+  let isOpen = false;
+  let isAnimating = false;
+
+  function animateFlip(toVertical, onComplete){
+    if (isAnimating) return;
+    isAnimating = true;
+
+    // Măsurători
+    const heroRects = heroLetterEls.map(el => el.getBoundingClientRect());
+    const slotRects = allSlots.map(el => el.getBoundingClientRect());
+    const heroFont = parseFloat(getComputedStyle(heroLetterEls[0]).fontSize);
+    const slotFont = parseFloat(getComputedStyle(allSlots[0]).fontSize);
+
+    // ---- Setup inițial ----
+if (toVertical) {
+  heroInner.style.opacity = '0';
+  allSlots.forEach(s => {
+    s.classList.remove('revealed');
+    s.style.transition = 'none';
+    // NU mai seta opacity/transform/clip-path inline — clasa .v-slot le are deja
+  });
+} else {
+      heroInner.style.opacity = '1';
+      heroLetterEls.forEach(l => {
+        l.style.transition = 'none';
+        l.style.opacity = '0';
+      });
+      allSlots.forEach(s => {
+        s.style.transition = 'none';
+        s.style.opacity = '0';
+      });
+    }
+
+    // Forțează reflow ca să aplicăm noile valori fără tranziție
+    void document.body.offsetHeight;
+
+    // Re-activează tranzițiile
+    if (toVertical) {
+      allSlots.forEach(s => { s.style.transition = ''; });
+    } else {
+      heroLetterEls.forEach(l => { l.style.transition = ''; });
+    }
+
+    // ---- Creăm clone-urile ----
+    const total = heroLetterEls.length;
+    const DUR = 700;
+    const STAGGER = 22;
+    const clones = [];
+
+    for (let i = 0; i < total; i++) {
+      const sourceRect = toVertical ? heroRects[i] : slotRects[i];
+      const targetRect = toVertical ? slotRects[i] : heroRects[i];
+      const sourceFont = toVertical ? heroFont : slotFont;
+      const targetFont = toVertical ? slotFont : heroFont;
+
+      // Clone-ul stă la poziția target, cu mărime target, scalat ca să pară la source
+      const scale = sourceFont / targetFont;
+      const tx = sourceRect.left - targetRect.left;
+      const ty = sourceRect.top - targetRect.top;
+
+      const clone = document.createElement('span');
+      clone.className = 'flying-letter';
+      clone.textContent = heroLetterEls[i].textContent;
+      clone.style.fontSize = targetFont + 'px';
+      clone.style.left = targetRect.left + 'px';
+      clone.style.top = targetRect.top + 'px';
+      clone.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      document.body.appendChild(clone);
+
+      // Zbor drept, fără glow, fără rotație, fără arc
+      const anim = clone.animate([
+        { transform: `translate(${tx}px, ${ty}px) scale(${scale})` },
+        { transform: 'translate(0, 0) scale(1)' }
+      ], {
+        duration: DUR,
+        delay: i * STAGGER,
+        easing: 'cubic-bezier(0.65, 0, 0.35, 1)',
+        fill: 'forwards'
+      });
+
+anim.onfinish = () => {
+  clone.remove();
+  if (toVertical) {
+    const slot = allSlots[i];
+    slot.style.transition = '';       // lasă CSS-ul să anime reveal-ul
+    slot.classList.add('revealed');
+  } else {
+    heroLetterEls[i].style.opacity = '1';
+  }
+};
+
+      clones.push(clone);
+    }
+
+    // ---- Finalizare ----
+const lastDelay = (total - 1) * STAGGER;
+setTimeout(() => {
+  clones.forEach(c => c.remove());
+
+  if (toVertical) {
+    // NU atinge sloturile — lasă-le cu .revealed ca să rămână vizibile
+    document.body.classList.add('projects-open');
+  } else {
+    document.body.classList.remove('projects-open');
+    heroLetterEls.forEach(l => { l.style.opacity = ''; l.style.transition = ''; });
+    heroInner.style.opacity = '';
+    allSlots.forEach(s => {
+      s.classList.remove('revealed');
+      s.style.opacity = '';
+      s.style.transform = '';
+      s.style.clipPath = '';
+      s.style.transition = '';
+    });
+  }
+
+  isOpen = toVertical;
+  isAnimating = false;
+  if (onComplete) onComplete();
+}, lastDelay + DUR + 40);
+  }
+
+  projectsLink.addEventListener('click', e => {
+    e.preventDefault();
+    playTick(900);
+    if (isAnimating) return;
+    if (!isOpen) {
+      animateFlip(true);
+      projectsLink.classList.add('active');
+    } else {
+      projectsDesc.classList.remove('visible');
+      animateFlip(false);
+      projectsLink.classList.remove('active');
+    }
+  });
+
+  /* ============================================
+     5. HOVER PE PROIECTE
+     ============================================ */
+  document.querySelectorAll('.project-item').forEach(item => {
+    attachHoverSound(item, 1200);
+    item.addEventListener('mouseenter', () => {
+      projectsDesc.textContent = item.dataset.desc || '';
+      projectsDesc.classList.add('visible');
+    });
+    item.addEventListener('mouseleave', () => projectsDesc.classList.remove('visible'));
+  });
+
+/* ============================================
+   SCRAMBLE — numele proiectelor se "decriptează" la hover
+   ============================================ */
+const GLYPHS = '#@%&$!?*/<>[]{}=+~^!<>-_\\/[]{}—=+*^?#';
+function scramble(el){
+  if (el.dataset.scrambling) return;              // nu relua dacă rulează deja
+  const original = el.textContent;
+  el.dataset.scrambling = '1';
+  el.classList.add('scrambling');
+  let i = 0;
+  const tail = 77;                                  // cadre extra după finalizarea decriptării
+  const total = original.length + tail;
+  const timer = setInterval(() => {
+    i++;
+    const revealed = Math.min(i, original.length);
+    el.textContent = original.split('').map((ch, j) =>
+      j < revealed ? ch : (ch === ' ' ? ' ' : GLYPHS[Math.floor(Math.random() * GLYPHS.length)])
+    ).join('');
+    if (i >= total){
+      clearInterval(timer);
+      el.textContent = original;                   // textul exact, garantat, la final
+      el.classList.remove('scrambling');
+      delete el.dataset.scrambling;
+    }
+  }, 77);
+}
+document.querySelectorAll('.project-item').forEach(item => {
+  item.addEventListener('mouseenter', () => scramble(item));
+});
+
+  /* ============================================
+     6. CONTACT
+     ============================================ */
+  const contactLink = document.getElementById('contactLink');
+  const backBtn = document.getElementById('backBtn');
+
+  function openContact(){
+    document.body.classList.add('contact-open');
+    contactLink.classList.add('active');
+    document.getElementById('contactForm').reset();
+  }
+  function closeContact(){
+    document.body.classList.remove('contact-open');
+    contactLink.classList.remove('active');
+  }
+
+  contactLink.addEventListener('click', e => {
+    e.preventDefault();
+    playTick(1100);
+    if (isOpen) {
+      projectsDesc.classList.remove('visible');
+      animateFlip(false);
+      projectsLink.classList.remove('active');
+      setTimeout(openContact, 900);
+    } else {
+      openContact();
+    }
+  });
+
+  backBtn.addEventListener('click', () => { playTick(900); closeContact(); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.body.classList.contains('contact-open')) closeContact();
+  });
+
+  document.getElementById('logoHome').addEventListener('click', () => {
+    if (document.body.classList.contains('contact-open')) {
+      closeContact();
+    } else if (isOpen) {
+      projectsDesc.classList.remove('visible');
+      animateFlip(false);
+      projectsLink.classList.remove('active');
+    }
+  });
+
+  /* ============================================
+     7. FORM SUBMIT → ateliergrafic@gmail.com
+     ============================================ */
+  const FORM_ENDPOINT = 'https://formsubmit.co/ajax/ateliergrafic@gmail.com';
+  const FALLBACK_MAILTO = 'mailto:ateliergrafic@gmail.com';
+
+  const form = document.getElementById('contactForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const formStatus = document.getElementById('formStatus');
+
+  function showStatus(msg, isError = false){
+    formStatus.textContent = msg;
+    formStatus.classList.toggle('error', isError);
+    formStatus.classList.add('show');
+    clearTimeout(showStatus._t);
+    showStatus._t = setTimeout(() => formStatus.classList.remove('show'), 4000);
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    playTick(1400);
+
+    const data = new FormData(form);
+    const payload = {
+      name:    (data.get('name')    || '').toString().trim(),
+      email:   (data.get('email')   || '').toString().trim(),
+      subject: (data.get('subject') || '').toString().trim() || 'Mesaj nou de pe site',
+      message: (data.get('message') || '').toString().trim(),
+      _subject: 'Contact site — ' + ((data.get('name') || '').toString().trim() || 'anonim'),
+      _template: 'table',
+      _captcha: 'false',
+    };
+
+    if (!payload.name || !payload.email || !payload.message) {
+      showStatus('Te rog completează nume, email și mesaj.', true);
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+      showStatus('Email invalid. Verifică adresa.', true);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'Se trimite…';
+
+    try {
+      const res = await fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      showStatus('Mulțumesc! Mesajul a fost trimis.');
+      form.reset();
+    } catch (err) {
+      const subject = encodeURIComponent(payload._subject);
+      const body = encodeURIComponent(
+        `Nume: ${payload.name}\nEmail: ${payload.email}\n\n${payload.message}`
+      );
+      window.location.href = `${FALLBACK_MAILTO}?subject=${subject}&body=${body}`;
+      showStatus('Se deschide clientul de mail…', true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalHTML;
+    }
+  });
+
+  /* ============================================
+     8. SUNET PE LINKURI + HOVER CURSOR
+     ============================================ */
+  document.querySelectorAll('nav .nav-links a, footer a, .contact-value, .back-btn').forEach(el => {
+    attachHoverSound(el, 1600);
+  });
+
+  document.querySelectorAll('a, button, input, textarea, .logo').forEach(el => {
+    el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+    el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+  });
+</script>
+<script>
+  const descPanel = document.getElementById('projectDescPanel');
+  const descContent = document.getElementById('projectDescContent');
+  const projectItems = document.querySelectorAll('.project-item');
+  let hoverTimeout;
+
+  // Maparea dintre textul de pe ecran și cheia din obiectul de descrieri
+const projectMapping = {
+    'MaD-Generator SIP': 'sip',
+    'MaD-OAIS': 'ingestor',
+    'MaD-OCFL': 'ocfl',
+    'MaD-Derivator': 'derivator',
+    'MaD-Mail': 'mail',
+    'MaD-Suite:': 'suite',
+    'Remediarium': 'remediarium',
+    'Bit asistent AI': 'bit',
+    'ePsaltire': 'epsaltire',
+    'Secky': 'secky'  
+};
+
+  // Descrierile tale, transformate în HTML semantic pentru a fi formatate de CSS
+  const projectDescriptions = {
+suite: `
+  <p><strong>MaD Suite</strong> este un ecosistem software dedicat managementului, conservării și accesului la arhive digitale, proiectat conform standardelor internaționale pentru prezervarea patrimoniului digital și administrarea pe termen lung a informației.</p>
+
+  <ul>
+    <li><strong>MaD-SIP-Generator</strong> – generarea pachetelor de transmitere (Submission Information Package)</li>
+    <li><strong>MaD-OAIS</strong> – ingestie, prezervare și administrare arhivistică</li>
+    <li><strong>MaD-Derivator</strong> – generarea derivatelor pentru acces și consultare</li>
+    <li><strong>MaD-Repository-Manager</strong> – administrarea depozitelor conforme OCFL</li>
+    <li><strong>M@D-Mail</strong> – arhivare, analiză și conservare a mesajelor electronice</li>
+  </ul>
+
+  <p><strong>Standarde și modele implementate</strong></p>
+
+  <p>
+    OAIS (ISO 14721:2025) · ISO 16363:2012 · PREMIS v3.0 ·
+    ISO 19005 (PDF/A) · ISO 23081 · OCFL v1.1.1
+  </p>
+
+  <p><strong>Componente și tehnologii integrate</strong></p>
+
+  <p>
+    Siegfried (PRONOM) · veraPDF · ExifTool · ImageMagick ·
+    QPDF · Ghostscript · FFmpeg / FFprobe ·
+    SHA-512 · SHA-256 · SHA-1 · MD5 · BLAKE2b-512
+  </p>
+
+  <p style="margin-top:20px;opacity:.8;">
+    © 2026 · Concept: <strong>Bogdan Florin Popovici</strong> ·
+    Dezvoltare: <strong>Dan Silviu Pura</strong>
+  </p>
+`,
+    sip: `
+      <p>Aplicație desktop Electron pentru generarea pachetelor de transmitere SIP (Submission Information Package) pentru arhive digitale, conceput pentru a crea pachete standardizate, verificate criptografic, destinate conservării patrimoniului digital.</p>
+      <ul>
+        <li><strong>Scanare automată a fișierelor</strong> – indexare recursivă cu hashing SHA-256 în paralel</li>
+        <li><strong>Identificare de format</strong> – integrare cu Siegfried (baza de date PRONOM)</li>
+        <li><strong>Detectare duplicate</strong> – identifică fișiere identice după hash</li>
+        <li><strong>Corectare extensii</strong> – detectează și repară extensii greșite</li>
+        <li><strong>Integritate criptografică</strong> – sistem dual de hash (anchor hash + hash ZIP final)</li>
+        <li><strong>Generare manifest</strong> – MI-SIP (intern) și ME-SIP (extern)</li>
+        <li><strong>Păstrarea structurii directoarelor</strong> în metadate</li>
+      </ul>
+    `,
+   
+    ingestor: `
+      <p>Aplicație desktop Electron destinată managementului arhivei digitale, construită pe modelul de referință <strong>ISO 14721 (OAIS)</strong> și orientată către fluxurile de ingestie și prezervare digitală.</p>
+      <strong class="title">FLUX DE INGESTIE ȘI PREZERVARE</strong>
+      <ul>
+        <li><strong>Procesare SIP</strong> – ingestia pachetelor de transmitere și verificarea structurii acestora.</li>
+        <li><strong>Procesare arhive ZIP</strong> – deschiderea, extragerea și procesarea automată a conținutului.</li>
+        <li><strong>Validare manifest</strong> – verificarea manifestelor interne și externe și a integrității conținutului.</li>
+        <li><strong>Analiză tehnică</strong> – identificarea formatelor și extragerea metadatelor tehnice necesare prezervării.</li>
+        <li><strong>Metadate de prezervare</strong> – managementul informațiilor tehnice și al evenimentelor asociate obiectelor digitale.</li>
+        <li><strong>Identificare PRONOM</strong> – înregistrarea formatului identificat și a identificatorului PUID.</li>
+        <li><strong>Jurnal PREMIS</strong> – istoricul complet al evenimentelor generate în timpul ingestiei.</li>
+        <li><strong>Transfer către OCFL</strong> – transferul obiectelor procesate și validate în depozitul de conservare digitală.</li>
+      </ul>
+    `,
+    
+    ocfl: `
+      <p>Aplicație desktop Electron pentru conservare digitală pe termen lung, conformă cu <strong>OCFL 1.1.1:2024 (Oxford Common File Layout)</strong>.</p>
+      <strong class="title">LAYOUT DE STOCARE</strong>
+      <ul>
+        <li><strong>Distribuție pe disc bazată pe SHA-256</strong> – fiecare obiect este plasat pe disc pe baza SHA-256 al ID-ului logic, utilizând extensia OCFL <strong>0004-hashed-n-tuple-storage-layout</strong>.</li>
+        <li><strong>Foldere imbricate opace</strong> – 3 segmente a câte 3 caractere, urmate de folderul final care conține hash-ul complet, asigurând distribuția uniformă a zeci de mii de obiecte.</li>
+        <li><strong>inventory.json</strong> – câmpul <strong>id</strong> rămâne sursa de adevăr pentru identitatea obiectului.</li>
+      </ul>
+      <strong class="title">VERSIONARE ȘI INTEGRITATE</strong>
+      <ul>
+        <li><strong>Deduplicare automată pe SHA-512</strong> – conținutul identic reîncărcat nu ocupă spațiu suplimentar.</li>
+        <li><strong>Fixity multi-algoritm</strong> – fiecare fișier nou primește checksum-uri SHA-512, SHA-256, SHA-1, MD5 și BLAKE2b-512, calculate simultan într-o singură citire a fișierului sursă.</li>
+        <li><strong>Stergere logică</strong> – elimină fișierul din versiunea curentă, păstrându-l recuperabil în istoricul obiectului.</li>
+        <li><strong>Purjare conformă OCFL</strong> – eliminare definitivă a obiectului întreg sau a unui fișier individual din întregul istoric, cu tombstone și jurnal de audit.</li>
+        <li><strong>Diff vizual între versiuni</strong> – identifică elementele adăugate, eliminate, modificate și redenumite.</li>
+      </ul>
+    `,
+    
+    derivator: `
+      <p>Modul integrat în MaD-oais, pentru normalizarea masterelor și generarea automată a formatelor derivate necesare accesului și utilizării conținutului digital.</p>
+      <strong class="title">NORMALIZARE TIFF MASTER</strong>
+      <ul>
+        <li><strong>Normalizare lossless</strong> – generare TIFF Master cu compresie LZW sau ZIP, la rezoluția DPI configurată.</li>
+        <li><strong>Procesare imagine</strong> – control asupra spațiului de culoare, adâncimii de culoare, layere-lor și metadatelor.</li>
+        <li><strong>Transformări</strong> – rotire și crop manual al marginilor, cu posibilitatea configurării numerotării fișierelor.</li>
+      </ul>
+      <strong class="title">GENERARE DERIVATE INDIVIDUALE - IMAGINI</strong>
+      <ul>
+        <li><strong>Conversie multi-format</strong> – generare JPG, JPEG 2000 (JP2), PDF și PDF/A-2B din TIFF, JPEG, PNG, BMP sau PDF.</li>
+        <li><strong>Parametri configurabili</strong> – DPI, calitate și compresie, contrast, sharpen și adâncime de culoare.</li>
+        <li><strong>Procesare în lot</strong> – aplicarea regulilor de conversie asupra unor selecții de fișiere sau directoare întregi.</li>
+      </ul>
+      <strong class="title">PDF PAGINI MULTIPLE</strong>
+      <ul>
+        <li><strong>Generare PDF</strong> – combinarea imaginilor în documente PDF standard sau PDF/A-2B pentru arhivare.</li>
+        <li><strong>Preseturi rapide</strong> – configurații optimizate pentru Web/Acces, Arhivă și Print.</li>
+        <li><strong>Control dimensional</strong> – formate A4, A3, A5, Letter, Legal sau dimensiuni personalizate, cu păstrarea proporțiilor.</li>
+        <li><strong>Split PDF</strong> – fragmentarea documentelor după numărul de pagini sau după dimensiunea estimată în MB.</li>
+      </ul>
+    `,
+
+bit: `
+      <p>Asistent virtual desktop cu personalitate, construit cu Electron și tehnologii web native, conceput ca un companion prietenos pentru copii — care răspunde vocal, reacționează vizual și învață prin conversație.</p>
+      <ul>
+        <li><strong>Avatar animat expresiv</strong> – robotel cu clipit, face cu ochiul și zâmbet, exprimate aleatoriu</li>
+        <li><strong>Voce în română</strong> – sinteză vocală nativă (Web Speech API) cu animație sincronizată a gurii</li>
+        <li><strong>Motor de skill-uri modular</strong> – matematică, geografie, glume, cu arhitectură extensibilă</li>
+        <li><strong>AI local (opțional)</strong> – integrare cu Ollama pentru răspunsuri generale, cu fallback offline</li>
+        <li><strong>Sistem de teme dinamice</strong> – patru palete de culori (albastru, violet, verde, portocaliu, dark)</li>
+        <li><strong>Memorie conversațională</strong> – istoric persistent în localStorage, cu indicator vizual de gândire</li>
+        <li><strong>Interfață plutitoare</strong> – fereastră transparentă, draggable, mereu deasupra celorlalte</li>
+      </ul>
+    `, 
+remediarium: `
+      <p>Repertoriu homeopatic digital alcătuit din surse clasice verificate, conceput pentru acces rapid și precis în practica clinică și studiul homeopatiei (conform Dicționarului Homeopatic Român - SRH și arhitecturii Kent).</p>
+      <ul>
+        <li><strong>Bază de date de simptome</strong> – circa 3.500 de rubrici grupate pe categorii (Sistem nervos, Cardiovascular, Emoțional, Generalities etc.) cu remedii punctate pe grade (1, 2, 3)</li>
+        <li><strong>Căutare și filtrare</strong> – filtrare după categorii, căutare text și sortare alfabetică a rubricilor</li>
+        <li><strong>Calculul remediilor</strong> – însumare automată a scorurilor remediilor pe baza simptomelor selectate și afișare ordonată descrescător</li>
+        <li><strong>Gestionare locală</strong> – adăugare, modificare sau ștergere de categorii, simptome și remedii, salvate direct în browser</li>
+        <li><strong>Import repertoriu</strong> – suport pentru încărcarea de fișiere JSON personalizate</li>
+      </ul>
+    `,
+secky: `
+      <p>Aplicație utilitară dezvoltată integral în Python, concepută ca un vânător specializat de infostealers și analist de fișiere/loguri compromise.</p>
+      <ul>
+        <li><strong>Actualizare automată</strong> – preluarea dinamică a celor mai recente baze de date și feed-uri de la principalele platforme de threat intelligence și trackere de infostealers.</li>
+        <li><strong>Motor de căutare în Python</strong> – procesare rapidă și interogare locală a indicatorilor de compromitere (IoC), credentiale și amprente de malware.</li>
+        <li><strong>Analiză și detecție</strong> – identificarea rapidă a expunerilor asociate familiilor majore de infostealers (RedLine, Lumma, Stealc etc.).</li>
+      </ul>
+    `,
+	
+epsaltire: `
+      <p>Aplicație web statică (HTML, CSS, JS) progresivă (PWA), dedicată folosirii Psaltirii în rugăciune după practica Sfântului Arsenie Capadocianul și a Cuviosului Paisie Aghioritul, bazată pe lucrarea <em>„Psaltirea Binecuvântărilor”</em>.</p>
+      <ul>
+        <li><strong>Rânduială de rugăciune</strong> – ghid interactiv pentru folosirea cazurilor Sf. Arsenie (inclusiv varianta Sf. Paisie)</li>
+        <li><strong>Cazurile Sfântului Arsenie</strong> – afișare în stil contemporan și arhaic, cu legătură directă către psalmul recomandat</li>
+        <li><strong>Psaltirea integrală</strong> – text complet în traducerea diortosită de ieromonahul Rafail Noica</li>
+        <li><strong>Index tematic</strong> – conectează psalmii cu situațiile specifice de viață</li>
+        <li><strong>Viețile sfinților &amp; resurse</strong> – biografii ale Sf. Arsenie și Sf. Paisie, citate duhovnicești și surse utile</li>
+      </ul>
+    `,	
+    mail: `
+      <p>Aplicație desktop Electron pentru arhivarea, căutarea și exportul mesajelor electronice, rulând 100% local.</p>
+      <ul>
+        <li><strong>Import multi-format</strong> – .pst (Outlook), .eml, .msg, .mbox (Thunderbird, Google Takeout)</li>
+        <li><strong>Arhivare locală</strong> – bază de date SQLite cu deduplicare automată SHA-256 extins (subiect, expeditor, dată, body, Message-ID, atașamente)</li>
+        <li><strong>Decizie manuală duplicate</strong> – păstrează ambele sau șterge duplicatul, cu comparare side-by-side</li>
+        <li><strong>Căutare avansată</strong> – subiect, expeditor, destinatari, corp, nume atașamente + filtre pe profil, folder, dată, mărime</li>
+        <li><strong>Vizualizare detaliată</strong> – metadate tehnice complete (Message-ID, headers SMTP, priorități, categorii)</li>
+        <li><strong>Export în 9 formate</strong> – .eml, .msg, .mht, .txt, .html, .pdf, .mbox, .vcf, CSV, cu structuri flexibile de foldere</li>
+        <li><strong>Administrare arhivă</strong> – compactare (VACUUM), verificare integritate, curățare</li>
+      </ul>
+    `
+  };
+
+  // Pe dispozitive touch nu există hover: primul tap deschide descrierea,
+  // al doilea tap pe același proiect o închide.
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  let lastTappedItem = null;
+
+  function openDescFor(item){
+    clearTimeout(hoverTimeout);
+
+    const projectName = item.textContent.trim();
+    const defaultDesc = item.getAttribute('data-desc');
+    const projectKey = projectMapping[projectName];
+
+    // Setează conținutul (fie cel HTML definit mai sus, fie fallback-ul din data-desc)
+    if (projectKey && projectDescriptions[projectKey]) {
+      descContent.innerHTML = projectDescriptions[projectKey];
+    } else if (defaultDesc && defaultDesc !== 'Placeholder' && defaultDesc !== 'Descriere placeholder...') {
+      descContent.innerHTML = `<p>${defaultDesc}</p>`;
+    } else {
+      // Dacă e un placeholder fără descriere, nu afișăm nimic (sau un text generic)
+      descContent.innerHTML = `<p>Detalii în curând...</p>`;
+    }
+
+    // Scoate clasa 'active' de pe toate celelalte elemente
+    projectItems.forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+
+// originea lansării = poziția linkului, raportată la panou (stil macOS dock)
+const r = item.getBoundingClientRect();
+const p = descPanel.getBoundingClientRect();
+descPanel.style.transformOrigin =
+  Math.max(0, Math.min(100, (r.left + r.width/2 - p.left) / p.width * 100)) + '% ' +
+  Math.max(0, Math.min(100, (r.top + r.height/2 - p.top) / p.height * 100)) + '%';
+
+    // Arată panoul
+    descPanel.classList.add('visible');
+  }
+
+  function hideDesc(){
+    descPanel.classList.remove('visible');
+    projectItems.forEach(i => i.classList.remove('active'));
+    lastTappedItem = null;
+  }
+
+  projectItems.forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      openDescFor(item);
+    });
+
+    item.addEventListener('mouseleave', () => {
+      // Folosim un mic delay pentru a preveni flicker-ul
+      hoverTimeout = setTimeout(hideDesc, 100);
+    });
+
+    if (!canHover) {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        if (lastTappedItem === item && descPanel.classList.contains('visible')) {
+          hideDesc();
+        } else {
+          openDescFor(item);
+          lastTappedItem = item;
+        }
+      });
+    }
+  });
+
+  // Păstrează panoul deschis dacă mouse-ul intră pe el
+  descPanel.addEventListener('mouseenter', () => {
+    clearTimeout(hoverTimeout);
+  });
+
+  descPanel.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    hideDesc();
+  });
+
+  // Închide panoul la orice navigare (Projects / Contact / logo / back)
+  ['projectsLink', 'contactLink', 'logoHome', 'backBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => {
+      clearTimeout(hoverTimeout);
+      hideDesc();
+    });
+  });
+  
+  
+/* ============================================
+   MAGNETIC — logo + linkuri nav, atrase de cursor
+   ============================================ */
+if (canHover) {
+  const magnets = [...document.querySelectorAll('nav .nav-links a, .logo')];
+  magnets.forEach(el => {
+    el.style.transition = 'transform .18s cubic-bezier(.2,.8,.2,1)';
+  });
+  let magX = -9999, magY = -9999;
+  document.addEventListener('mousemove', e => { magX = e.clientX; magY = e.clientY; });
+  (function magnetLoop(){
+    magnets.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (!r.width) return;
+      const dx = magX - (r.left + r.width / 2);
+      const dy = magY - (r.top + r.height / 2);
+      const dist = Math.hypot(dx, dy);
+      const R = 90;
+      if (dist < R) {
+        const falloff = 1 - dist / R;
+        const tx = Math.max(-13, Math.min(13, dx * falloff * 0.55));
+        const ty = Math.max(-13, Math.min(13, dy * falloff * 0.55));
+        el.style.transform = `translate(${tx}px, ${ty}px)`;
+      } else if (el.style.transform) {
+        el.style.transform = '';
+      }
+    });
+    requestAnimationFrame(magnetLoop);
+  })();
+}
+
+/* ============================================
+   TERMINAL SECRET — tastează ~ sau apasă butonul >_
+   ============================================ */
+(function(){
+  // ---------- CSS ----------
+  const css = `
+  .term{
+    position:fixed;right:18px;bottom:70px;z-index:300;
+    width:min(640px,calc(100vw - 36px));height:min(420px,58vh);
+    display:flex;flex-direction:column;
+    background:rgba(10,14,26,.88);border:1px solid rgba(255,255,255,.16);
+    border-radius:10px;overflow:hidden;
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    box-shadow:0 18px 60px rgba(0,0,0,.6);
+    opacity:0;pointer-events:none;
+    transform:translateY(16px) scale(.96);transform-origin:100% 100%;
+    transition:opacity .28s ease,transform .38s cubic-bezier(.16,1,.3,1);
+  }
+  .term.open{opacity:1;pointer-events:auto;transform:none}
+  .term-head{
+    display:flex;align-items:center;gap:8px;flex:none;
+    padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.04);
+  }
+  .term-light{width:11px;height:11px;border-radius:50%}
+  .term-light.r{background:var(--accent3)} .term-light.y{background:var(--accent)} .term-light.g{background:var(--accent2)}
+  .term-light.r{cursor:pointer}
+  .term-title{margin-left:6px;font:500 12px ui-monospace,Menlo,Consolas,monospace;color:var(--muted);letter-spacing:.4px}
+  .term-body{
+    flex:1;overflow-y:auto;padding:14px 16px 6px;
+    font:400 13.5px/1.65 ui-monospace,Menlo,Consolas,monospace;color:#cfd3dc;
+    scrollbar-width:thin;
+  }
+  .term-body::-webkit-scrollbar{width:6px}
+  .term-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:3px}
+  .tl{white-space:pre-wrap;word-break:break-word;animation:tlin .25s ease both}
+  @keyframes tlin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .tl.cmd{color:var(--accent2)} .tl.err{color:var(--accent3)} .tl.dim{color:var(--muted)}
+  .term-input-line{display:flex;gap:8px;align-items:baseline;padding:8px 16px 14px;flex:none}
+  .term-prompt{font:600 13.5px ui-monospace,Menlo,Consolas,monospace;color:var(--accent2);white-space:nowrap}
+  .term-input{
+    flex:1;background:none;border:none;outline:none;color:#fff;
+    font:400 13.5px ui-monospace,Menlo,Consolas,monospace;caret-color:var(--accent2);
+  }
+  .term-fab{
+    position:fixed;right:18px;bottom:18px;z-index:120;
+    width:77px;height:16px;border-radius:4px;
+    background:rgba(15,20,35,.5);border:1px solid rgba(255,255,255,.14);
+    color:var(--muted);font:600 12px ui-monospace,Menlo,Consolas,monospace;
+    display:flex;align-items:center;justify-content:center;
+    cursor:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    transition:color .3s,border-color .3s,box-shadow .3s,transform .3s;
+  }
+  .term-fab:hover{color:var(--fg);border-color:var(--accent2);box-shadow:0 0 16px rgba(255,255,255,.12);transform:translateY(-2px)}
+  @media(max-width:768px){
+    .term{left:12px;right:12px;width:auto;bottom:66px;height:min(420px,54dvh)}
+    .term-input{font-size:16px}
+    .term-fab{right:12px;bottom:12px;width:182px;height:42px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .term,.term-fab,.tl{transition:none;animation:none}
+  }`;
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  // ---------- DOM ----------
+  const term = document.createElement('div');
+  term.className = 'term';
+  term.innerHTML = `
+    <div class="term-head">
+      <span class="term-light r" title="închide"></span>
+      <span class="term-light y"></span>
+      <span class="term-light g"></span>
+      <span class="term-title">guest@studio: ~</span>
+    </div>
+    <div class="term-body"></div>
+    <div class="term-input-line">
+      <span class="term-prompt">guest@studio:~$</span>
+      <input class="term-input" type="text" autocomplete="off" spellcheck="false" aria-label="terminal">
+    </div>`;
+  document.body.appendChild(term);
+
+  const fab = document.createElement('button');
+  fab.className = 'term-fab';
+  fab.textContent = '2026 ©pds ';
+  fab.setAttribute('aria-label', 'deschide terminalul');
+  document.body.appendChild(fab);
+
+  const out   = term.querySelector('.term-body');
+  const input = term.querySelector('.term-input');
+  const redDot = term.querySelector('.term-light.r');
+
+  // ---------- ajutoare ----------
+  function print(text, cls){
+    const div = document.createElement('div');
+    div.className = 'tl' + (cls ? ' ' + cls : '');
+    div.textContent = text;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  }
+  function openTerm(){
+    hideDesc();
+    term.classList.add('open');
+    playTick(1600);
+    setTimeout(() => input.focus(), 120);
+    if (!out.childElementCount){
+      print('studio terminal — v1.0', 'dim');
+
+    }
+  }
+  function closeTerm(){
+    term.classList.remove('open');
+    input.blur();
+    playTick(900);
+  }
+  const isOpen = () => term.classList.contains('open');
+
+  // ---------- istoric comenzi ----------
+  const history = [];
+  let histIdx = 0;
+
+  // ---------- comenzi ----------
+  function run(raw){
+    print('guest@studio:~$ ' + raw, 'cmd');
+    const line = raw.trim();
+    if (!line) return;
+    history.push(raw);
+    histIdx = history.length;
+    const parts = line.split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    switch(cmd){
+      case 'help':
+        print('comenzi disponibile:');
+        print('  whoami       cine sunt');
+        print('  ls           listează secțiunile');
+        print('  Proiecte     deschide proiectele');
+        print('  contact      deschide contactul');
+        print('  home         întoarce-te la început');
+        print('  theme [1-5]  schimbă tema');
+        print('  date         data și ora');
+        print('  echo [text]  repetă textul');
+        print('  clear        curăță ecranul');
+        print('  party        or konami ;)');
+        print('  exit         închide terminalul');
+        break;
+      case 'whoami':
+        print('Dezvoltator software | Web & soluții digitale');
+        print('Deschis colaborărilor și proiectelor cu sens.');
+
+        break;
+      case 'ls':
+        print('proiecte/   contact   theme   about');
+        break;
+      case 'proiecte':
+        closeTerm();
+        projectsLink.click();
+        break;
+      case 'contact':
+        closeTerm();
+        contactLink.click();
+        break;
+      case 'home':
+        closeTerm();
+        document.getElementById('logoHome').click();
+        break;
+      case 'theme': {
+        const a = (args[0] || '').toLowerCase();
+        if (a === 'next'){ setTheme((themeIndex + 1) % themes.length); }
+        else if (a === 'prev'){ setTheme((themeIndex + themes.length - 1) % themes.length); }
+        else if (/^[1-5]$/.test(a)){ setTheme(parseInt(a, 10) - 1); }
+        else { print('teme: 1-5, next, prev · tema curentă: ' + (themeIndex + 1), 'dim'); break; }
+        playTick(2000);
+        print('tema activă: ' + (themeIndex + 1) + '/5');
+        break;
+      }
+      case 'date':
+        print(new Date().toString());
+        break;
+      case 'echo':
+        print(args.join(' '));
+        break;
+      case 'clear':
+        out.innerHTML = '';
+        break;
+      case 'sudo':
+        print('guest nu este în fișierul sudoers. Incidentul va fi raportat. ;)');
+        break;
+        case 'party':
+          closeTerm();
+          if (window.__pdsParty) window.__pdsParty();
+          break;
+      case 'exit': case 'quit': case 'close':
+        closeTerm();
+        break;
+      case 'hack':
+        print('Inițiere secvență de securitate...:))');
+        break;
+      case 'ping':
+        print('PONG! localhost');
+        break;
+      case 'coffee':
+        print('   ( (');
+        print('    ) )');
+        print('  ........');
+        print('  |      |]');
+        print('  \\      /');
+        print('   `----`');
+        print('Cafea compilată și servită.');
+        break;
+      case 'neofetch':
+        print('        .----.      SISTEM DIGITAL');
+        print('       / .--. \\     ----------------');
+        print('      | |    | |    Host: Web Portfolio');
+        print('      | |____| |    Shell: Guest Terminal');
+        print('       \\      /     Theme: ' + (themeIndex + 1) + '/5');
+        print('        `----`      Status: ONLINE');
+        print('                    Mode: Interactive');
+        break;
+      case 'matrix':
+        print('Wake up, developer...');
+        print('The terminal has you.');
+        print('Follow the white rabbit. 🐇');
+        print(' ');
+        print('01001001 01000100 01000101 01001001');
+        print('REALITATEA ESTE O PROBLEMĂ DE INTERPRETARE.', 'dim');
+        break;
+      case 'git':
+        if ((args[0] || '').toLowerCase() === 'status') {
+          print('On branch main');
+          print('Your ideas are ahead of the schedule.');
+          print('Nothing to commit. Everything to improve.');
+        } else {
+          print('git: încearcă „git status” pentru un diagnostic simbolic.');
+        }
+        break;
+      case 'rm':
+        if (args.join(' ').includes('-rf')) {
+          print('[BLOCKED] Comandă distructivă detectată.');
+          print('Nu s-a șters niciun fișier. Datele merită respect.');
+        } else {
+          print('Mod demonstrativ: nicio operațiune de ștergere executată.');
+        }
+        break;
+
+      default:
+        print('comandă necunoscută: ' + cmd + ' — încearcă "help"', 'err');
+    }
+  }
+
+  // ---------- evenimente ----------
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ playTick(1200); run(input.value); input.value = ''; }
+    else if (e.key === 'ArrowUp'){
+      if (histIdx > 0){ histIdx--; input.value = history[histIdx]; }
+      e.preventDefault();
+    }
+    else if (e.key === 'ArrowDown'){
+      if (histIdx < history.length - 1){ histIdx++; input.value = history[histIdx]; }
+      else { histIdx = history.length; input.value = ''; }
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === '`' || e.key === '~'){
+      if (!isOpen()){ e.preventDefault(); openTerm(); }
+      else if (document.activeElement !== input){ e.preventDefault(); closeTerm(); }
+      // dacă focusul e pe input, lăsăm caracterul ` să se scrie normal
+    } else if (e.key === 'Escape' && isOpen()){
+      closeTerm();
+    }
+  });
+
+  fab.addEventListener('click', () => isOpen() ? closeTerm() : openTerm());
+  redDot.addEventListener('click', closeTerm);
+  attachHoverSound(fab, 1600);
+  if (typeof cursor !== 'undefined' && typeof dot !== 'undefined'){
+    fab.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+    fab.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+  }
+})();
+
+
+  /* ============================================
+     KONAMI CODE — ↑ ↑ ↓ ↓ ← → ← → B A = PARTY MODE
+     ============================================ */
+  (function(){
+    const SEQ = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
+    const DURATA = 6000;                 // cât durează haosul (ms)
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let buffer = [];
+    let partyOn = false;
+
+    // ---------- CSS: badge + pânză confetti ----------
+    const css = `
+    .party-canvas{position:fixed;inset:0;z-index:600;pointer-events:none}
+    .party-badge{
+      position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:600;
+      font:700 13px ui-monospace,Menlo,Consolas,monospace;letter-spacing:3px;
+      color:var(--accent2);background:rgba(10,14,26,.72);
+      border:1px solid var(--accent2);border-radius:999px;padding:8px 18px;
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+      pointer-events:none;
+      animation:partyPulse .5s ease-in-out infinite alternate;
+    }
+    @keyframes partyPulse{
+      from{transform:translateX(-50%) scale(1);box-shadow:0 0 4px 0 var(--accent2)}
+      to{transform:translateX(-50%) scale(1.07);box-shadow:0 0 24px 5px var(--accent2)}
+    }
+    @media(prefers-reduced-motion:reduce){.party-badge{animation:none}}`;
+    const pStyle = document.createElement('style');
+    pStyle.textContent = css;
+    document.head.appendChild(pStyle);
+
+    // ---------- aplauze: sound.wav (fallback: sound.wave) lângă index.html ----------
+    const SUNET = ['sound.wav', 'sound.wave'];
+    const aplauze = new Audio();
+    aplauze.preload = 'auto';
+    aplauze.volume = .8;
+    let sIdx = 0;
+    aplauze.addEventListener('error', () => {
+      sIdx++;
+      if (sIdx < SUNET.length){ aplauze.src = SUNET[sIdx]; aplauze.load(); }
+    });
+    aplauze.src = SUNET[0];
+    function stingeAplauze(){
+      const iv = setInterval(() => {
+        aplauze.volume = Math.max(0, aplauze.volume - .12);
+        if (aplauze.volume <= 0){ clearInterval(iv); aplauze.pause(); aplauze.currentTime = 0; aplauze.volume = .8; }
+      }, 90);
+    }
+
+    // ---------- sintetizator propriu (independent de restul paginii) ----------
+    const SCARA = [0,2,4,7,9,12,14,16,19,21,24,26,28,31,33,36];   // pentatonică
+    function notaParty(freq, cand, dur, vol){
+      if (!audioCtx) return;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(.0001, cand);
+      g.gain.exponentialRampToValueAtTime(vol, cand + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, cand + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(cand); o.stop(cand + dur + .05);
+    }
+    let arpInt = null;
+    function arpeggiu(){
+      let pas = 0;
+      arpInt = setInterval(() => {
+        if (!audioCtx) return;
+        const f = 523.25 * Math.pow(2, SCARA[pas % SCARA.length] / 12);
+        notaParty(f, audioCtx.currentTime, .18, .05);
+        notaParty(f * 2, audioCtx.currentTime, .14, .02);
+        if (++pas > 22 && arpInt){ clearInterval(arpInt); arpInt = null; }
+      }, 95);
+    }
+
+    // ---------- confetti ----------
+    function confetti(){
+      const c = document.createElement('canvas');
+      c.className = 'party-canvas';
+      c.width = innerWidth; c.height = innerHeight;
+      document.body.appendChild(c);
+      const cx = c.getContext('2d');
+      const cs = getComputedStyle(document.documentElement);
+      const culori = [cs.getPropertyValue('--accent'), cs.getPropertyValue('--accent2'), cs.getPropertyValue('--accent3'), '#ffffff'].map(s => s.trim());
+      const parts = Array.from({ length: 160 }, () => ({
+        x: Math.random() * c.width,
+        y: -20 - Math.random() * c.height * .4,
+        w: 5 + Math.random() * 6, h: 8 + Math.random() * 8,
+        vx: -1.6 + Math.random() * 3.2, vy: 2 + Math.random() * 3.4,
+        rot: Math.random() * Math.PI, vr: -.14 + Math.random() * .28,
+        culoare: culori[(Math.random() * culori.length) | 0],
+        viata: 1
+      }));
+      let frames = 0;
+      (function bucla(){
+        cx.clearRect(0, 0, c.width, c.height);
+        parts.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.vy += .045; p.rot += p.vr;
+          if (frames > 140) p.viata -= .016;
+          cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot);
+          cx.globalAlpha = Math.max(0, p.viata);
+          cx.fillStyle = p.culoare;
+          cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          cx.restore();
+        });
+        frames++;
+        if (frames < 300) requestAnimationFrame(bucla); else c.remove();
+      })();
+    }
+
+    // ---------- literele dansează (Web Animations API — nu strică stilurile existente) ----------
+    function val(){
+      const cadru = [
+        { transform: 'translateY(0) scale(1)' },
+        { transform: 'translateY(-26px) rotate(7deg) scale(1.14)' },
+        { transform: 'translateY(5px) scale(.98)' },
+        { transform: 'translateY(0) scale(1)' }
+      ];
+      const opt = { duration: 620, easing: 'cubic-bezier(.3,1.3,.4,1)' };
+      heroLetters.forEach((el, i) => el.animate(cadru, Object.assign({ delay: i * 42 }, opt)));
+      allSlots.forEach((el, i) => el.animate(cadru, Object.assign({ delay: i * 42 }, opt)));
+    }
+
+    // ---------- glitch storm (funcționează doar dacă efectul glitch există deja în pagină) ----------
+    function glitchStorm(){
+      if (!heroInner) return;
+      [900, 2400, 4000].forEach(t => setTimeout(() => {
+        heroInner.classList.add('glitching');
+        setTimeout(() => heroInner.classList.remove('glitching'), 350);
+      }, t));
+    }
+
+    // ---------- badge PARTY MODE ----------
+    function badge(arat){
+      let b = document.querySelector('.party-badge');
+      if (arat && !b){
+        b = document.createElement('div');
+        b.className = 'party-badge';
+        b.textContent = '★ PARTY MODE ★';
+        document.body.appendChild(b);
+      } else if (!arat && b) b.remove();
+    }
+
+    // ---------- spectacolul complet ----------
+    function party(){
+      if (partyOn) return;
+      partyOn = true;
+      ensureAudio();
+      badge(true);
+      try { aplauze.currentTime = 0; aplauze.play().catch(() => {}); } catch(e){}
+      const temaOriginala = themeIndex;
+      if (!reduceMotion){
+        discoInt = setInterval(() => setTheme((themeIndex + 1) % themes.length), 430);
+        confetti();
+        val();
+        setTimeout(val, 3000);
+        glitchStorm();
+      }
+      arpeggiu();
+      setTimeout(() => {
+        if (discoInt){ clearInterval(discoInt); discoInt = null; }
+        if (arpInt){ clearInterval(arpInt); arpInt = null; }
+        setTheme(temaOriginala);
+        badge(false);
+        stingeAplauze();
+        partyOn = false;
+      }, DURATA);
+    }
+    window.__pdsParty = party;   // folosit și de comanda „party” din terminal
+
+    // ---------- ascultătorul secret ----------
+    document.addEventListener('keydown', e => {
+      if (partyOn) return;
+      const t = document.activeElement;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      const k = (e.key || '').toLowerCase();
+      if (!(k.length === 1 || k.startsWith('arrow'))) return;
+      buffer.push(k);
+      if (buffer.length > SEQ.length) buffer.shift();
+      if (buffer.length === SEQ.length && SEQ.every((v, i) => v === buffer[i])){
+        buffer = [];
+        party();
+      }
+    });
+  })();
+</script>
+</body>
+</html>

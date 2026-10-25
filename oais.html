@@ -1,0 +1,3429 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaD-oais v3.2.3</title>
+  <style>
+    :root {
+      --bg-dark: #1a1a2e;
+      --bg-header: #12121c;
+      --bg-panel: #222232;
+      --bg-sidebar: #1e1e2c;
+      --accent-blue: #3b82f6;
+      --accent-blue-light: #4a9eff;
+      --btn-blue: #2563eb;
+      --btn-blue-dark: #1e40af;
+      --btn-green: #16a34a;
+      --btn-green-dark: #15803d;
+      --btn-hover: #3b82f6;
+      --text-main: #c8c8d8;
+      --text-muted: #8888a0;
+      --border-color: #2a2a3a;
+      --console-bg: #0d0d14;
+      --console-green: #00ff66;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    /* Header */
+    header {
+      background-color: var(--bg-header);
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .brand {
+      font-weight: 600;
+      font-size: 13px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-logo {
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(135deg, #6366f1, #3b82f6);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .sys-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: #7dd3fc;
+      margin-right: 16px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 1;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .search-bar input[type="text"] {
+      background: #14141d;
+      border: 1px solid #333348;
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 12px;
+    }
+
+    .search-bar input[type="date"] {
+      background: #14141d;
+      border: 1px solid #333348;
+      color: #aaa;
+      padding: 5px 8px;
+      border-radius: 4px;
+      width: 130px;
+      font-size: 12px;
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 8px;
+      color: #666;
+      font-size: 12px;
+    }
+
+    /* App Container */
+    .app-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 38px);
+      overflow: hidden;
+    }
+
+    /* Left Sidebar */
+    .sidebar-left {
+      width: 220px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 10px 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-logo {
+      width: 52px;
+      height: auto;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9090a8;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .tree-view {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+
+    .tree-folder {
+      padding: 7px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #e0e0f0;
+      font-size: 12px;
+    }
+    .tree-folder.selected { background-color: #2d3a5c; color: #fff; }
+    .tree-folder:hover { background-color: #2a2a3e; }
+
+    .tree-file {
+      padding: 5px 12px 5px 28px;
+      cursor: pointer;
+      color: #a0a0b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .tree-file:hover { background-color: #2a2a3e; color: #fff; }
+    .tree-file.selected { background-color: #2d3a5c; color: #fff; }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      background-color: var(--bg-dark);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      padding: 12px;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .progress-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: none;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #14141d;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--accent-blue);
+      transition: width 0.2s ease;
+    }
+
+    .center-display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      position: relative;
+      overflow: auto;
+      padding: 20px 24px;
+    }
+
+    .welcome-block {
+      max-width: 640px;
+    }
+
+    .welcome-block h2 {
+      font-size: 18px;
+      color: #fff;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .welcome-block .hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f0c040;
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+
+    .welcome-block p {
+      color: #a0a0b8;
+      line-height: 1.65;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .dynamic-desc {
+      display: none;
+      max-width: 560px;
+      margin-top: 8px;
+      padding: 14px 18px;
+      background: rgba(30, 40, 70, 0.55);
+      border: 1px solid #2a3a5a;
+      border-radius: 6px;
+      color: #d0d8e8;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .dynamic-desc.visible {
+      display: block;
+    }
+
+    .dynamic-desc .desc-line {
+      display: block;
+      padding: 2px 0;
+    }
+
+    /* ── Audit Wizard ── */
+    .audit-wizard {
+      display: none;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 10px 8px 20px;
+      color: #d0d0e0;
+    }
+    .audit-wizard.visible { display: block; }
+
+    .audit-wizard h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+
+    .audit-field-label {
+      font-size: 13px;
+      color: #b0b0c8;
+      margin-bottom: 6px;
+    }
+
+    .audit-path-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .audit-path-row input {
+      flex: 1;
+      background: #fff;
+      color: #222;
+      border: 1px solid #555;
+      border-radius: 3px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    .audit-folder-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .audit-btn-primary {
+      display: block;
+      width: 100%;
+      background: #2d5a8a;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+    .audit-btn-primary:hover { background: #3a6fa5; }
+
+    .audit-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .audit-btn-back {
+      background: #fff;
+      color: #333;
+      border: 1px solid #888;
+      border-radius: 3px;
+      padding: 8px 18px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .audit-btn-back:hover { background: #f0f0f0; }
+    .audit-btn-start {
+      flex: 1;
+      background: #2d5a8a;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .audit-btn-start:hover { background: #3a6fa5; }
+
+    .audit-analysis-card {
+      background: #1a1a28;
+      border: 1px solid #2a2a3e;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      font-size: 12.5px;
+      line-height: 1.7;
+    }
+    .audit-analysis-card .card-title {
+      font-weight: 600;
+      color: #7dd3fc;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .audit-analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 20px;
+      margin-bottom: 8px;
+    }
+    .audit-orphan-warn {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border: 1px dashed #c9a227;
+      border-radius: 4px;
+      color: #e8c84a;
+      font-size: 12px;
+    }
+
+    .audit-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #60a5fa;
+      margin: 14px 0 8px;
+    }
+    .audit-section-title.red { color: #f87171; }
+
+    .audit-check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .audit-check-list label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #c8c8d8;
+      cursor: pointer;
+    }
+    .audit-check-list input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: #3b82f6;
+    }
+
+    .audit-results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .audit-results-header h2 {
+      margin: 0;
+      font-size: 16px;
+      color: #7dd3fc;
+    }
+    .audit-problems-badge {
+      color: #f87171;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .audit-result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .audit-result-card {
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12px;
+      min-height: 56px;
+    }
+    .audit-result-card .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .audit-result-card .card-body {
+      margin-top: 8px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      display: none;
+    }
+    .audit-result-card .card-body.open { display: block; }
+
+    .card-corupt { background: rgba(120,30,30,0.35); border: 1px solid #7f1d1d; color: #fca5a5; }
+    .card-lipsa  { background: rgba(120,40,20,0.4); border: 1px solid #9a3412; color: #fdba74; }
+    .card-ext    { background: rgba(30,60,30,0.4); border: 1px solid #166534; color: #86efac; }
+    .card-rename { background: rgba(60,50,20,0.4); border: 1px solid #854d0e; color: #fde68a; }
+    .card-crypto { background: rgba(80,20,40,0.4); border: 1px solid #9f1239; color: #fda4af; }
+    .card-dublu  { background: rgba(20,50,70,0.45); border: 1px solid #0e7490; color: #67e8f9; }
+    .card-orfan  { background: rgba(60,30,20,0.4); border: 1px solid #9a3412; color: #fdba74; }
+
+    .audit-reports-btn-wrap {
+      text-align: center;
+      margin: 8px 0 14px;
+    }
+    .audit-reports-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 16px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .audit-reports-btn:hover { background: #3b82f6; }
+
+    .audit-console {
+      background: #0d0d14;
+      border: 1px solid #2a2a3a;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 11.5px;
+      color: #38bdf8;
+      max-height: 200px;
+      overflow-y: auto;
+      line-height: 1.55;
+    }
+    .audit-console .log-line { white-space: pre-wrap; }
+
+    /* Schedule panel */
+    .sched-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 8px;
+    }
+    .sched-col-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 12px;
+    }
+    .sched-field {
+      margin-bottom: 10px;
+    }
+    .sched-field label {
+      display: block;
+      font-size: 12px;
+      color: #b0b0c8;
+      margin-bottom: 4px;
+    }
+    .sched-field select,
+    .sched-field input[type="text"],
+    .sched-field input[type="password"] {
+      background: #14141d;
+      border: 1px solid #3a3a50;
+      color: #e0e0f0;
+      border-radius: 3px;
+      padding: 6px 8px;
+      font-size: 12.5px;
+      width: 100%;
+      max-width: 260px;
+    }
+    .sched-field select {
+      cursor: pointer;
+    }
+    .sched-time-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sched-time-row select {
+      width: 72px;
+      max-width: 72px;
+      background: #1a1a28;
+    }
+    .sched-row-2 {
+      display: flex;
+      gap: 8px;
+      max-width: 260px;
+    }
+    .sched-row-2 input { max-width: none; }
+
+    .stego-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: #1a1a28;
+      border: 1px solid #2a2a3e;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .stego-table th {
+      background: #252538;
+      color: #a0aec0;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+      font-size: 11px;
+      border-bottom: 1px solid #333;
+    }
+    .stego-table td {
+      padding: 10px;
+      border-bottom: 1px solid #2a2a3e;
+      vertical-align: top;
+      color: #d0d0e0;
+    }
+    .stego-table tr:last-child td { border-bottom: none; }
+    .stego-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 90px;
+    }
+    .stego-btn-extract {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+	
+    .stego-btn-extract:hover { background: #3b82f6; }
+    .stego-btn-delete {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .stego-btn-delete:hover { background: #ef4444; }
+    .stego-badge-extract {
+      display: inline-block;
+      background: #16a34a;
+      color: #fff;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .folder-title-view {
+      display: none;
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      margin-top: 20px;
+    }
+
+    .image-preview-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 90%;
+      max-height: 85%;
+      margin: auto;
+    }
+
+    .image-preview-container img {
+      max-width: 100%;
+      max-height: 60vh;
+      border: 1px solid #333;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .image-subtext {
+      margin-top: 8px;
+      color: #707088;
+      font-size: 12px;
+    }
+
+    /* Console */
+    .console-overlay {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      height: 320px;
+      background-color: var(--console-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 10px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--console-green);
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      gap: 3px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+      z-index: 50;
+    }
+
+    .console-line { line-height: 1.35; }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 8px;
+      height: 12px;
+      background-color: var(--console-green);
+      margin-left: 4px;
+      animation: blink 1s infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* Right Sidebar */
+    .sidebar-right {
+      width: 300px;
+      background-color: var(--bg-sidebar);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .right-header {
+      padding: 10px 14px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-sidebar);
+      flex-shrink: 0;
+    }
+
+    .right-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* Accordion sections */
+    .accordion-item {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .accordion-title {
+      padding: 9px 14px;
+      font-weight: 700;
+      font-size: 11px;
+      color: #b0b0cc;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #252538;
+      user-select: none;
+    }
+
+    .accordion-title:hover {
+      background: #2a2a40;
+    }
+
+    .accordion-content {
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    .accordion-content.collapsed {
+      display: none;
+    }
+
+    /* Subgroup headers (INGESTIE, PREGĂTIRE ARHIVĂ, etc.) */
+    .subgroup-header {
+      background: linear-gradient(180deg, #2a4a7a 0%, #1e3a5f 100%);
+      color: #ffffff;
+      padding: 7px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      border: none;
+      border-bottom: 1px solid #1a2a40;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+    }
+
+    .subgroup-header:hover {
+      background: linear-gradient(180deg, #335a8a 0%, #254a6f 100%);
+    }
+
+    .subgroup-header.green {
+      background: linear-gradient(180deg, #1a6b3a 0%, #145c30 100%);
+      border-bottom-color: #0f4a25;
+    }
+
+    .subgroup-header.green:hover {
+      background: linear-gradient(180deg, #1f7a44 0%, #186838 100%);
+    }
+
+    .subgroup-header .arrow {
+      font-size: 11px;
+      opacity: 0.85;
+      min-width: 12px;
+      text-align: center;
+    }
+
+    .subgroup-body {
+      display: none;
+      flex-direction: column;
+      background: #18182a;
+    }
+
+    .subgroup-body.open {
+      display: flex;
+    }
+
+    /* Action buttons */
+    .btn-action {
+      background: linear-gradient(180deg, #3b6ea5 0%, #2d5a8a 100%);
+      color: #fff;
+      border: none;
+      border-bottom: 1px solid #1e3a5a;
+      padding: 8px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 500;
+      width: 100%;
+      transition: background 0.15s;
+    }
+
+    .btn-action:hover:not(:disabled) {
+      background: linear-gradient(180deg, #4a82c0 0%, #3b6ea5 100%);
+    }
+
+    .btn-action:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+      background: #2a3a50 !important;
+    }
+
+    .btn-action.green {
+      background: linear-gradient(180deg, #2e9e4f 0%, #228b3e 100%);
+      border-bottom-color: #1a6b30;
+    }
+
+    .btn-action.green:hover:not(:disabled) {
+      background: linear-gradient(180deg, #38b85c 0%, #2e9e4f 100%);
+    }
+
+    /* Transfer sub-tabs */
+    .transfer-tabs {
+      display: flex;
+      background: #141420;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .transfer-tab {
+      flex: 1;
+      padding: 6px 4px;
+      font-size: 10px;
+      text-align: center;
+      color: #888;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-bottom: 2px solid transparent;
+    }
+
+    .transfer-tab.active {
+      color: #4fc3f7;
+      border-bottom-color: #4fc3f7;
+      background: #1a1a2e;
+    }
+
+    .transfer-tab:hover {
+      color: #bbb;
+    }
+
+    /* Details */
+    .details-box {
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #c0c0d0;
+      line-height: 1.55;
+    }
+
+    .details-field {
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+
+    .details-label {
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .uuid-highlight {
+      background-color: #1d3326;
+      color: #00ffaa;
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+
+    .event-card {
+      border-bottom: 1px solid #2d2d3f;
+      padding: 8px 0;
+    }
+
+    .event-card:last-child { border-bottom: none; }
+    .event-title { font-weight: 600; color: #89b4fa; }
+    .event-time { color: #888; font-size: 10px; }
+
+    /* Modal styles (kept from original) */
+    .corupte-content.open, .lipsa-content.open {
+      max-height: 200px !important;
+    }
+    .arrow.rotated {
+      transform: rotate(180deg);
+    }
+    .tool-tag {
+      background: #2a2a3c;
+      color: #4fc3f7;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-right: 4px;
+      border: 1px solid #333;
+    }
+    .tools-inventory-bar {
+      margin: 8px 0;
+      font-size: 11px;
+      color: #aaa;
+    }
+    .modal-card {
+      background: #1e1e1e;
+      color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #333;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .modal-results-scroll {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 10px;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+    }
+    .modal-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .modal-table th, .modal-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #333; }
+    .modal-table th { background: #252538; color: #4fc3f7; position: sticky; top: 0; z-index: 2; }
+    .btn-small-act { padding: 4px 8px; font-size: 10px; border-radius: 3px; cursor: pointer; border: none; font-weight: bold; }
+    .btn-act-fix { background: #0288d1; color: #fff; }
+    .btn-act-fix:disabled { background: #455a64; cursor: not-allowed; }
+    .btn-act-del { background: #ef5350; color: #fff; }
+.back-btn {
+        background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+        color: #e0e0f0; height: 28px; padding: 0 12px; border-radius: 4px;
+        cursor: pointer; font-size: 0.8rem; font-weight: 500;
+        display: flex; align-items: center; text-decoration: none; white-space: nowrap;
+    }
+
+    /* Mobile menu toggles (hidden on desktop) */
+    .mobile-toggles {
+      display: none;
+      gap: 6px;
+      align-items: center;
+    }
+    .mobile-toggle-btn {
+      background: #252538;
+      border: 1px solid #3a3a50;
+      color: #c8c8d8;
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      min-height: 32px;
+      white-space: nowrap;
+    }
+    .mobile-toggle-btn:active,
+    .mobile-toggle-btn.active {
+      background: #2d3a5c;
+      border-color: #4a9eff;
+      color: #fff;
+    }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 90;
+    }
+    .sidebar-backdrop.visible {
+      display: block;
+    }
+
+    /* ── Responsive: tablet ── */
+    @media (max-width: 1024px) {
+      .sidebar-left { width: 180px; }
+      .sidebar-right { width: 260px; }
+      .search-bar { max-width: 360px; }
+      .sys-stats { display: none; }
+      .audit-result-grid { grid-template-columns: 1fr; }
+      .sched-grid { grid-template-columns: 1fr; gap: 16px; }
+      .audit-analysis-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Responsive: mobile ── */
+    @media (max-width: 768px) {
+      body {
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        font-size: 14px;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      header {
+        height: auto;
+        min-height: 44px;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 10px;
+      }
+
+      .brand {
+        font-size: 12px;
+        gap: 6px;
+      }
+
+      .brand-logo {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+      }
+
+      .search-bar {
+        order: 3;
+        flex: 1 1 100%;
+        max-width: 100%;
+        margin: 0;
+        gap: 6px;
+      }
+
+      .search-bar input[type="text"] {
+        font-size: 14px;
+        padding: 8px 10px;
+        min-height: 40px;
+      }
+
+      .search-bar input[type="date"] {
+        width: 120px;
+        min-height: 40px;
+        font-size: 13px;
+      }
+
+      .window-controls {
+        gap: 6px;
+        font-size: 14px;
+      }
+
+      .window-controls span {
+        display: none;
+      }
+
+      .back-btn {
+        height: 32px;
+        padding: 0 10px;
+        font-size: 0.75rem;
+      }
+
+      .mobile-toggles {
+        display: flex;
+      }
+
+      .app-container {
+        height: auto;
+        min-height: calc(100dvh - 90px);
+        flex-direction: column;
+        position: relative;
+      }
+
+      .sidebar-left,
+      .sidebar-right {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        z-index: 100;
+        width: min(86vw, 300px);
+        max-width: 300px;
+        transform: translateX(-110%);
+        transition: transform 0.25s ease;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.45);
+      }
+
+      .sidebar-right {
+        right: 0;
+        left: auto;
+        transform: translateX(110%);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.45);
+      }
+
+      .sidebar-left.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-right.open {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        width: 100%;
+        padding: 10px;
+        gap: 8px;
+        min-height: 50vh;
+      }
+
+      .center-display {
+        padding: 12px 10px;
+      }
+
+      .welcome-block h2 {
+        font-size: 16px;
+      }
+
+      .welcome-block p,
+      .welcome-block .hint {
+        font-size: 13px;
+      }
+
+      .dynamic-desc {
+        max-width: 100%;
+        font-size: 13px;
+        padding: 12px 14px;
+      }
+
+      .audit-wizard {
+        max-width: 100%;
+        padding: 6px 4px 16px;
+      }
+
+      .audit-wizard h2 {
+        font-size: 16px;
+        margin-bottom: 14px;
+      }
+
+      .audit-path-row {
+        flex-wrap: wrap;
+      }
+
+      .audit-path-row input {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .audit-btn-row {
+        flex-direction: column;
+      }
+
+      .audit-btn-back,
+      .audit-btn-start,
+      .audit-btn-primary {
+        width: 100%;
+        min-height: 44px;
+        font-size: 14px;
+      }
+
+      .btn-action {
+        padding: 12px 14px;
+        font-size: 13px;
+        min-height: 44px;
+      }
+
+      .subgroup-header {
+        padding: 10px 12px;
+        font-size: 12px;
+        min-height: 44px;
+      }
+
+      .tree-folder,
+      .tree-file {
+        padding: 10px 12px;
+        min-height: 44px;
+        font-size: 13px;
+      }
+
+      .tree-file {
+        padding-left: 28px;
+      }
+
+      .console-overlay {
+        left: 6px;
+        right: 6px;
+        bottom: 6px;
+        height: min(40vh, 280px);
+        font-size: 11px;
+      }
+
+      .stego-table {
+        font-size: 11px;
+      }
+
+      .stego-table th,
+      .stego-table td {
+        padding: 8px 6px;
+      }
+
+      .stego-actions {
+        min-width: 72px;
+      }
+
+      .image-preview-container {
+        max-width: 100%;
+      }
+
+      .image-preview-container img {
+        max-height: 50vh;
+      }
+
+      .modal-card {
+        width: 96%;
+        max-height: 90vh;
+        padding: 14px;
+      }
+
+      /* Ensure touch feedback */
+      .btn-action:active:not(:disabled),
+      .mobile-toggle-btn:active,
+      .tree-folder:active,
+      .tree-file:active {
+        opacity: 0.85;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .search-bar input[type="date"] {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+      .search-bar {
+        flex-wrap: wrap;
+      }
+      .brand {
+        font-size: 11px;
+      }
+      .mobile-toggle-btn {
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">◈</div>
+      MaD-oais
+    </div>
+
+    <div class="mobile-toggles">
+      <button type="button" class="mobile-toggle-btn" id="toggle-left-sidebar" aria-label="Obiecte digitale">📁 Obiecte</button>
+      <button type="button" class="mobile-toggle-btn" id="toggle-right-sidebar" aria-label="Acțiuni">⚡ Acțiuni</button>
+    </div>
+
+    <div class="search-bar">
+	    <div class="sys-stats">
+      <span>CPU 8.8%</span>
+      <span>RAM 46.7%</span>
+    </div>
+      <input type="text" placeholder="Căutare în evidență (nume fișier, pachet, hash, uuid...)">
+      <input type="date" value="2026-08-24">
+    </div>
+    <div class="window-controls">
+	        <a href="madsuite.html" class="back-btn" title="MaD-suite">← Înapoi</a>
+      <span>−</span>
+      <span>□</span>
+      <span>×</span>
+    </div>
+  </header>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <div class="app-container">
+
+    <!-- Sidebar Stânga -->
+    <div class="sidebar-left">
+<div class="sidebar-header">
+  <img 
+    src="logo.gif" 
+    alt="Logo" 
+    title="refresh"
+    class="sidebar-logo" 
+    style="cursor: pointer;" 
+    onclick="window.location.href='oais.html';" 
+    onerror="this.style.display='none'"
+  >
+  <span class="panel-title">OBIECTE DIGITALE</span>
+</div>
+      <div class="tree-view" id="tree-view">
+        <div class="tree-folder selected" id="btn-explorare-tree" style="cursor:pointer;"
+             data-desc="||📂 Explorare folder local
+||→ selectare și încărcare structură de fișiere
+||→ afișare ierarhică în panoul stâng
+||→ activare acțiuni post-ingestie">
+          📁 Explorare folder
+        </div>
+      </div>
+    </div>
+
+    <!-- Zona Centrală -->
+    <div class="main-content">
+      <div class="progress-panel" id="progress-panel">
+        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+          <span id="progress-status">Procesare...</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="center-display" id="center-display">
+        <div class="welcome-block" id="welcome-block">
+          <h2>Mad-oais v3.2.3</h2>
+          <div class="hint" id="welcome-hint">
+            <span>💡</span>
+            <span>Plasați cursorul peste butoanele din zona ACȚIUNI pentru descriere</span>
+          </div>
+          <div class="dynamic-desc" id="dynamic-desc"></div>
+          <div id="welcome-static">
+            <p>Aplicație destinată managementului arhivei digitale, construită pe modelul de referință ISO 14721:2025 Open archival information system (OAIS).</p>
+            <p>Implementarea automatizează fluxul de lucru și marchează toate etapele cu evenimente PREMIS, de la ingestia SIP până la transferul fișierelor Master în depozitul OCFL (Oxford Common File Layout - 1.1.1:07.11.2024)</p>
+            <p>Sistemul este proiectat pentru a asigura integritatea, trasabilitatea, și auditabilitatea completă a arhivei digitale.</p>
+          </div>
+        </div>
+
+        <div class="folder-title-view" id="folder-title-view">
+          Folder: TM-FD-12345-2026.08.19_VALIDAT (2)
+        </div>
+
+        <div class="image-preview-container" id="image-preview">
+          <img id="preview-img" src="" alt="Preview">
+          <div class="image-subtext">Click pentru viewer extern</div>
+        </div>
+
+        <!-- Audit Prezervare Wizard -->
+        <div class="audit-wizard" id="audit-wizard">
+          <!-- Step 1: Selectare storage -->
+          <div id="audit-step-1">
+            <h2>Audit prezervare — Selectare storage</h2>
+            <div class="audit-field-label">Selectează storage</div>
+            <div class="audit-path-row">
+              <input type="text" id="audit-storage-path" value="C:\Arhiva\Master" readonly>
+              <button class="audit-folder-btn" id="audit-browse-btn" title="Selectează folder">📁</button>
+            </div>
+            <button class="audit-btn-primary" id="audit-next-btn">Next</button>
+          </div>
+
+          <!-- Step Schedule: Programare Audit Automat & Notificări (doar mod auto) -->
+          <div id="audit-step-schedule" style="display:none;">
+            <h2>📅 Programare Audit Automat & Notificări</h2>
+            <div class="sched-grid">
+              <div class="sched-col">
+                <div class="sched-col-title">Recurență</div>
+                <div class="sched-field">
+                  <label>Frecvență:</label>
+                  <select id="sched-freq">
+                    <option value="zilnic" selected>Zilnic</option>
+                    <option value="saptamanal">Săptămânal (Luni)</option>
+                    <option value="lunar">Lunar (Ziua 1)</option>
+                  </select>
+                </div>
+                <div class="sched-field">
+                  <label>Ora rulării (Format 24h):</label>
+                  <div class="sched-time-row">
+                    <select id="sched-hour"></select>
+                    <span>:</span>
+                    <select id="sched-min"></select>
+                  </div>
+                </div>
+              </div>
+              <div class="sched-col">
+                <div class="sched-col-title">Notificări Email</div>
+                <div class="sched-field">
+                  <label>Protocol:</label>
+                  <select id="sched-protocol">
+                    <option value="smtp-intern" selected>SMTP Intern (Intranet)</option>
+                    <option value="smtp-extern">SMTP Extern (TLS)</option>
+                    <option value="sendmail">Sendmail local</option>
+                  </select>
+                </div>
+                <div class="sched-field">
+                  <input type="text" id="sched-host" placeholder="Host (ex: mail.institutie.ro)">
+                </div>
+                <div class="sched-field sched-row-2">
+                  <input type="text" id="sched-port" placeholder="Port" style="width:70px;">
+                  <input type="text" id="sched-user" placeholder="Utilizator" style="flex:1;">
+                </div>
+                <div class="sched-field">
+                  <input type="password" id="sched-pass" placeholder="Parolă">
+                </div>
+              </div>
+            </div>
+            <div class="sched-field" style="margin-top:14px;">
+              <label>Destinatari (separați prin virgulă):</label>
+              <input type="text" id="sched-dest" value="arhiva@institutie.ro, admin@it.ro" style="width:100%;">
+            </div>
+            <div class="audit-btn-row">
+              <button class="audit-btn-back" id="sched-back-btn">Back</button>
+              <button class="audit-btn-start" id="sched-next-btn">Next: Configurare Audit</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Analiză & Configurare -->
+          <div id="audit-step-2" style="display:none;">
+            <h2>Audit prezervare — Analiză & Configurare</h2>
+            <div class="audit-analysis-card">
+              <div class="card-title">📊 Analiză Storage</div>
+              <div class="audit-analysis-grid">
+                <div>📁 Storage scanat: <strong id="audit-storage-name">TM-FD-00003</strong></div>
+                <div>💾 Dimensiune totală: <strong>15.70 MB</strong></div>
+                <div>📂 Foldere/subfoldere: <strong>1</strong></div>
+                <div>📄 Fișiere: <strong style="color:#60a5fa;">3</strong></div>
+              </div>
+              <div style="margin-top:6px;">🔍 Obiecte în Baza de Date: <strong style="float:right;">0</strong></div>
+              <div>✅ Obiecte identificate la scanare versus DB: <strong style="float:right; color:#4ade80;">0 / 0</strong></div>
+              <div class="audit-orphan-warn">⚠️ Fișiere orfane (fără corespondent DB): <strong>3</strong></div>
+            </div>
+
+            <div class="audit-section-title">Audit — Configurare</div>
+            <div class="audit-check-list">
+              <label><input type="checkbox" id="opt-existenta" checked> Verificare existență fișiere</label>
+              <label><input type="checkbox" id="opt-hash"> Verificare integritate (hash)</label>
+              <label><input type="checkbox" id="opt-orfane"> Detectare fișiere orfane</label>
+              <label><input type="checkbox" id="opt-metadata"> Verificare consistență metadata</label>
+            </div>
+
+            <div class="audit-section-title red">Analiză Securitate</div>
+            <div class="audit-check-list">
+              <label><input type="checkbox" id="opt-criptate"> Identificare fișiere criptate & parolate</label>
+              <label><input type="checkbox" id="opt-entropie"> Verificare entropie ridicată</label>
+              <label><input type="checkbox" id="opt-stego-audit"> Identificare steganografie suspectă</label>
+            </div>
+
+            <div class="audit-btn-row">
+              <button class="audit-btn-back" id="audit-back-btn">Back</button>
+              <button class="audit-btn-start" id="audit-start-btn">Start audit</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Rezumat -->
+          <div id="audit-step-3" style="display:none;">
+            <div class="audit-results-header">
+              <h2>📊 Rezumat Audit Finalizat</h2>
+              <span class="audit-problems-badge">PROBLEME DE INTEGRITATE</span>
+            </div>
+
+            <div class="audit-result-grid">
+              <div class="audit-result-card card-corupt">
+                <div class="card-head" onclick="this.nextElementSibling.classList.toggle('open')">
+                  <span>MASTER CORUPT (0)</span><span>▼</span>
+                </div>
+                <div class="card-body">Nicio problemă detectată</div>
+              </div>
+              <div class="audit-result-card card-lipsa">
+                <div class="card-head" onclick="this.nextElementSibling.classList.toggle('open')">
+                  <span>MASTER LIPSĂ (1)</span><span>▲</span>
+                </div>
+                <div class="card-body open">
+                  <div style="color:#f87171;">⛔ TM-FD-00003-1-1(1)_0002_s.jpg</div>
+                  <div style="color:#aaa; font-size:10px;">LIPSĂ PE DISK</div>
+                  <div style="color:#666; font-size:10px; margin-top:2px;">REF: 897cd8dc7e72e71f7e9eb9b9...</div>
+                </div>
+              </div>
+              <div class="audit-result-card card-ext">
+                <div class="card-head" onclick="this.nextElementSibling.classList.toggle('open')">
+                  <span>EXTENSIE MODIFICATĂ (0)</span><span>▼</span>
+                </div>
+                <div class="card-body">Nicio problemă</div>
+              </div>
+              <div class="audit-result-card card-rename">
+                <div class="card-head" onclick="this.nextElementSibling.classList.toggle('open')">
+                  <span>REDENUMITE (0)</span><span>▼</span>
+                </div>
+                <div class="card-body">Nicio problemă</div>
+              </div>
+              <div class="audit-result-card card-crypto" style="grid-column: 1 / -1;">
+                <div class="card-head" onclick="this.nextElementSibling.classList.toggle('open')">
+                  <span>SUSPECT CRIPTARE (0)</span><span>▼</span>
+                </div>
+                <div class="card-body">Nicio problemă</div>
+              </div>
+              <div class="audit-result-card card-dublu">
+                <div class="card-head" onclick="this.nextElementSibling.classList.toggle('open')">
+                  <span>DUBLETE IDENTIFICATE (0)</span><span>▼</span>
+                </div>
+                <div class="card-body">Nicio problemă</div>
+              </div>
+              <div class="audit-result-card card-orfan">
+                <div class="card-head" onclick="this.nextElementSibling.classList.toggle('open')">
+                  <span>FIȘIERE ORFANE (0)</span><span>▼</span>
+                </div>
+                <div class="card-body">Nicio problemă</div>
+              </div>
+            </div>
+
+            <div class="audit-reports-btn-wrap">
+              <button class="audit-reports-btn" id="audit-open-reports">📁 Deschide Folder Rapoarte</button>
+            </div>
+
+
+          </div>
+        </div>
+
+        <!-- Stego / Criptare Wizard -->
+        <div class="audit-wizard" id="stego-wizard">
+          <div id="stego-step-1">
+            <h2>Securitate Pachet — Criptare & Steganografie</h2>
+            <div class="audit-analysis-card">
+              <div class="card-title">📊 Analiză Storage</div>
+              <div class="audit-analysis-grid">
+                <div>📁 Storage scanat: <strong id="stego-storage-name">TM-FD-00003</strong></div>
+                <div>💾 Dimensiune totală: <strong>39.91 MB</strong></div>
+                <div>📂 Foldere/subfoldere: <strong>1</strong></div>
+                <div>📄 Fișiere: <strong style="color:#60a5fa;">5</strong></div>
+              </div>
+            </div>
+            <div class="audit-section-title">Opțiuni Analiză Securitate</div>
+            <p style="font-size:12px; color:#888; margin-bottom:10px;">Sistemul va examina pachetul pentru a depista vulnerabilități ascunse:</p>
+            <div class="audit-check-list">
+              <label><input type="checkbox" checked disabled> Identificare fișiere criptate & parolate</label>
+              <label><input type="checkbox" checked disabled> Verificare entropie ridicată</label>
+              <label><input type="checkbox" checked disabled> Identificare steganografie suspectă</label>
+            </div>
+            <div class="audit-btn-row">
+              <button class="audit-btn-back" id="stego-back-btn">Back</button>
+              <button class="audit-btn-start" id="stego-start-btn">Start analiză</button>
+            </div>
+          </div>
+
+          <div id="stego-step-2" style="display:none;">
+            <div class="audit-results-header" style="margin-bottom:12px;">
+              <h2 style="display:flex; align-items:center; gap:8px; margin:0; font-size:16px; color:#7dd3fc;">
+                <span>🛡️</span> Rezultat Scanare Criptare & Steganografie
+              </h2>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:11px; font-weight:700; color:#60a5fa; border:1px solid #3b82f6; padding:4px 10px; border-radius:4px;">ANALIZĂ SECURITATE FINALIZATĂ</span>
+                <button id="stego-close-results" style="background:transparent; border:1px solid #555; color:#aaa; border-radius:4px; width:28px; height:28px; cursor:pointer; font-size:14px;">✕</button>
+              </div>
+            </div>
+
+            <div style="font-size:12px; font-weight:700; color:#f87171; margin-bottom:8px; letter-spacing:0.3px;">SUSPECT CRIPTARE (2)</div>
+            <div style="overflow-x:auto; margin-bottom:14px;">
+              <table class="stego-table" id="stego-results-table">
+                <thead>
+                  <tr>
+                    <th>Fișier</th>
+                    <th>Cale</th>
+                    <th>Motiv</th>
+                    <th>Detalii</th>
+                    <th>Acțiuni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-row="0">
+                    <td style="color:#f87171; font-weight:600;">TM-FD-00003-stegano.pdf</td>
+                    <td style="color:#a0a0b8; font-size:11px;">C:\Users\puribus\Desktop\TM-FD-00003\TM-FD-00003-stegano.pdf</td>
+                    <td style="color:#f87171;">Suspect Steganografie</td>
+                    <td style="font-size:11px; color:#c0c0d0;">Date binare după ultimul marker %EOF (255707 bytes) | Semnătură format după %EOF: 7z, EXE, GZ</td>
+                    <td class="stego-actions">
+                      <button class="stego-btn-extract" data-size=".7z (249.7 KB)">Extrage</button>
+                      <button class="stego-btn-delete">Șterge</button>
+                    </td>
+                  </tr>
+                  <tr data-row="1">
+                    <td style="color:#f87171; font-weight:600;">TM-FD-00003-stegano.tiff</td>
+                    <td style="color:#a0a0b8; font-size:11px;">C:\Users\puribus\Desktop\TM-FD-00003\TM-FD-00003-stegano.tiff</td>
+                    <td style="color:#f87171;">Suspect Steganografie</td>
+                    <td style="font-size:11px; color:#c0c0d0;">Semnătură format embedded în TIFF: 7z la offset 24011038 | Extensii obfuscate detectate în conținut binar: .pdf</td>
+                    <td class="stego-actions">
+                      <button class="stego-btn-extract" data-size=".7z (516.1 KB)">Extrage</button>
+                      <button class="stego-btn-delete">Șterge</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="audit-reports-btn-wrap">
+              <button class="audit-reports-btn" id="stego-open-reports">📁 Deschide Folder Rapoarte</button>
+            </div>
+  
+          </div>
+        </div>
+      </div>
+
+      <div class="console-overlay" id="console-overlay" onclick="closeConsole()">
+        <div id="console-logs"></div>
+        <div><span class="cursor-blink"></span></div>
+      </div>
+    </div>
+
+    <!-- Sidebar Dreapta -->
+    <div class="sidebar-right">
+      <div class="right-header">
+        <span>informații despre obiect</span>
+        <span style="cursor:pointer; opacity:0.6;">☰</span>
+      </div>
+
+      <div class="right-scroll">
+
+        <!-- ACȚIUNI -->
+        <div class="accordion-item">
+          <div class="accordion-title" onclick="toggleSection('actions-body', 'arrow-actions')">
+            <span>ACȚIUNI</span>
+            <span id="arrow-actions">▼</span>
+          </div>
+
+          <div class="accordion-content" id="actions-body">
+
+            <!-- INGESTIE -->
+            <button class="subgroup-header" onclick="toggleSubgroup(this, 'group-ingestie')"
+              data-desc="||📥 Recepție pachet SIP și creare structură
+||🛡️ Scanare antivirus pe conținutul pachetului
+||🔐 Verificare criptare și steganografie
+||🗂️ Detectare extensii și analiza duplicate
+||📑 Analiză tehnică: format, metadate, validare PDF/A">
+              <span>INGESTIE</span>
+              <span class="arrow">▸</span>
+            </button>
+            <div class="subgroup-body" id="group-ingestie">
+              <button class="btn-action" id="btn-receptie" title="Recepție SIP – ingestie pachet">Recepție SIP</button>
+              <button class="btn-action" id="btn-antivirus" title="Scanare antivirus pe pachet" disabled>Scanare antivirus</button>
+              <button class="btn-action" id="btn-stego" title="Verificare criptare & steganografie" disabled>Verificare Criptare</button>
+              <button class="btn-action" id="btn-integrity" title="Extensii greșite & duplicate SHA-256" disabled>Extensii & Duplicate</button>
+              <button class="btn-action" id="btn-technical" title="Analiză tehnică (QPDF, ImageMagick, FFprobe)" disabled>Analiză tehnică</button>
+            </div>
+
+            <!-- PREGĂTIRE ARHIVĂ -->
+            <button class="subgroup-header" onclick="toggleSubgroup(this, 'group-pregatire')"
+              data-desc="||📦 Generare derivate de acces
+||→ normalizare Tiff,
+||→ derivate individuale-imagine,
+||→ derivare PDF pagini multiple
+||📚 Operațiuni PDF
+||→ îmbinare
+||→ divizare
+||🗂️ Organizare fișiere
+||→ împarte în foldere
+||→ unește în folderul părinte
+||💧 Aplicare watermark
+||📊 Afișarea structurii unui director">
+              <span>PREGĂTIRE ARHIVĂ</span>
+              <span class="arrow">▸</span>
+            </button>
+            <div class="subgroup-body" id="group-pregatire">
+              <button class="btn-action" id="derivateBtn" title="Generare derivate (access copies)" disabled>Generare derivate</button>
+              <button class="btn-action" id="btn-watermark" title="Aplicare watermark pe derivate" disabled>Aplicare watermark</button>
+              <button class="btn-action" id="btn-merge-pdf" title="Îmbinare PDF-uri" disabled>Îmbinare PDF</button>
+              <button class="btn-action" id="btn-split-pdf" title="Divizare PDF" disabled>Divizare PDF</button>
+              <button class="btn-action" id="btn-struct-dir" title="Structură director" disabled>Structură director</button>
+              <button class="btn-action" id="btn-group-files" title="Grupare fișiere" disabled>Grupare fișiere</button>
+            </div>
+
+            <!-- TRANSFER OBIECTE -->
+            <button class="subgroup-header" onclick="toggleSubgroup(this, 'group-transfer')"
+              data-desc="||📁 Mutare cu navigare/dialog pentru folder întreg
+||📄 Mutare cu navigare/dialog fișiere selectate
+||🚚 Transfer automat obiecte master către depozitul OCFL">
+              <span>TRANSFER OBIECTE</span>
+              <span class="arrow">▸</span>
+            </button>
+<div class="subgroup-body" id="group-transfer">
+  <div class="transfer-tabs">
+      <button class="transfer-tab active" data-tab="ocfl" id="btn-transfer-ocfl" title="Transfer către depozitul OCFL">Depozit OCFL</button>
+    <button class="transfer-tab" data-tab="folder">Folder întreg</button>
+    <button class="transfer-tab" data-tab="multiple">Fișiere multiple</button>
+
+  </div>
+</div>
+            <!-- PREZERVARE -->
+            <button class="subgroup-header green" onclick="toggleSubgroup(this, 'group-prezervare')"
+              data-desc="||👁️ Audit integritate individual
+||⏳ Programare audit automat">
+              <span>PREZERVARE</span>
+              <span class="arrow">▸</span>
+            </button>
+            <div class="subgroup-body" id="group-prezervare">
+              <button class="btn-action green" id="btn-audit-manual" title="Audit integritate manual">Audit integritate manual</button>
+              <button class="btn-action green" id="btn-audit-auto" title="Programare audit automat">Programare audit automat</button>
+            </div>
+
+            <!-- EVIDENȚĂ METADATE -->
+            <button class="subgroup-header" onclick="toggleSubgroup(this, 'group-evidenta')"
+              data-desc="||📊 Monitorizare Bază de Date - 🔍 Dashboard Interogări
+||🧪 Analiză integritate DB
+||🧬 Analiză Dublete DB
+||🩺 Remediere date DB
+||💾 Backup Bază de Date">
+              <span>EVIDENȚĂ METADATE</span>
+              <span class="arrow">▸</span>
+            </button>
+            <div class="subgroup-body" id="group-evidenta">
+              <button class="btn-action" id="btn-dashboard" title="Dashboard interogări">Dashboard Interogări</button>
+              <button class="btn-action" id="btn-db-integrity" title="Analiză integritate DB">Analiză integritate DB</button>
+              <button class="btn-action" id="btn-db-remediere" title="Remediere date DB">Remediere date DB</button>
+              <button class="btn-action" id="btn-db-backup" title="Backup bază de date">Backup Bază de Date</button>
+              <button class="btn-action" id="btn-db-dublate" title="Analiză dublate DB">Analiză Dublate DB</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- METADATE -->
+        <div class="accordion-item">
+          <div class="accordion-title" onclick="toggleSection('metadata-body', 'arrow-metadata')">
+            <span>METADATE</span>
+            <span id="arrow-metadata">▲</span>
+          </div>
+          <div class="accordion-content collapsed" id="metadata-body">
+            <div class="details-box" id="metadata-content">
+              <div style="color: #707088;">Selectați un folder sau fișier.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ISTORIC -->
+        <div class="accordion-item">
+          <div class="accordion-title" onclick="toggleSection('history-body', 'arrow-history')">
+            <span>ISTORIC</span>
+            <span id="arrow-history">▲</span>
+          </div>
+          <div class="accordion-content collapsed" id="history-body">
+            <div class="details-box" id="history-content">
+              <div style="color: #707088;">Fără istoric recent.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  // Starea globală
+  let isFolderLoaded = false;
+
+function updatePostIngestButtonsState() {
+  const ids = [
+    'btn-antivirus', 'btn-stego', 'btn-integrity', 'btn-technical',
+    'derivateBtn', 'btn-watermark', 'btn-merge-pdf', 'btn-split-pdf',
+    'btn-struct-dir', 'btn-group-files'
+  ];
+
+  const warning = ' — Trebuie mai întâi să încărcați sau să explorați un pachet/folder!';
+
+  ids.forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+
+    btn.disabled = !isFolderLoaded;
+
+    // Salvăm titlul original o singură dată
+    if (!btn.dataset.originalTitle) {
+      btn.dataset.originalTitle = btn.title || btn.getAttribute('title') || '';
+    }
+
+    if (!isFolderLoaded) {
+      // Setăm o singură dată titlul + mesajul
+      btn.title = btn.dataset.originalTitle + warning;
+    } else {
+      // Restaurăm titlul original când e activ
+      btn.title = btn.dataset.originalTitle;
+    }
+  });
+}
+
+  function toggleSection(contentId, arrowId) {
+    const content = document.getElementById(contentId);
+    const arrow = document.getElementById(arrowId);
+    if (content.classList.contains('collapsed')) {
+      content.classList.remove('collapsed');
+      arrow.textContent = '▼';
+    } else {
+      content.classList.add('collapsed');
+      arrow.textContent = '▲';
+    }
+  }
+
+  function toggleSubgroup(headerEl, groupId) {
+    const body = document.getElementById(groupId);
+    body.classList.toggle('open');
+    headerEl.classList.toggle('open');
+    const arrow = headerEl.querySelector('.arrow');
+    if (arrow) {
+      arrow.textContent = body.classList.contains('open') ? '▼' : '▸';
+    }
+  }
+
+  // Text dinamic la hover pe toggle-uri și Explorare folder
+  function formatDesc(raw) {
+    if (!raw) return '';
+    return raw
+      .split('||')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(line => `<span class="desc-line">${line}</span>`)
+      .join('');
+  }
+
+  function showDynamicDesc(el) {
+    const descBox = document.getElementById('dynamic-desc');
+    const staticBlock = document.getElementById('welcome-static');
+    const hint = document.getElementById('welcome-hint');
+    const welcome = document.getElementById('welcome-block');
+    if (!descBox || !welcome || welcome.style.display === 'none') return;
+
+    const raw = el.getAttribute('data-desc');
+    if (!raw) return;
+
+    descBox.innerHTML = formatDesc(raw);
+    descBox.classList.add('visible');
+    if (staticBlock) staticBlock.style.display = 'none';
+    if (hint) hint.style.opacity = '0.35';
+  }
+
+  function hideDynamicDesc() {
+    const descBox = document.getElementById('dynamic-desc');
+    const staticBlock = document.getElementById('welcome-static');
+    const hint = document.getElementById('welcome-hint');
+    if (!descBox) return;
+    descBox.classList.remove('visible');
+    descBox.innerHTML = '';
+    if (staticBlock) staticBlock.style.display = '';
+    if (hint) hint.style.opacity = '1';
+  }
+
+  function bindDynamicHover() {
+    const targets = document.querySelectorAll('[data-desc]');
+    targets.forEach(el => {
+      el.addEventListener('mouseenter', () => showDynamicDesc(el));
+      el.addEventListener('mouseleave', hideDynamicDesc);
+    });
+  }
+
+  function closeConsole() {
+    document.getElementById('console-overlay').style.display = 'none';
+  }
+
+  function openReport() {
+    window.open('TM-FD-12345-2026.08.24_VALIDAT/Certificat_Audit_TM-FD-12345-2026.08.24.html', '_blank');
+  }
+
+  // Explorare folder (left tree or equivalent)
+  function doExplorareFolder() {
+    const treeView = document.getElementById('tree-view');
+    treeView.innerHTML = `
+      <div class="tree-folder selected" onclick="showFolderDetails()">📁 Test_imagini (2)</div>
+      <div class="tree-file" onclick="selectImage('Test_imagini/TM-FD-01194-1901.jpg', 'TM-FD-01194-1901.jpg', this)">📄 TM-FD-01194-1901.jpg</div>
+      <div class="tree-file" onclick="selectImage('Test_imagini/TM-FD-01194-1902.jpg', 'TM-FD-01194-1902.jpg', this)">📄 TM-FD-01194-1902.jpg</div>
+      <div class="tree-file" onclick="selectImage('Test_imagini/TM-FD-01194-1903.jpg', 'TM-FD-01194-1903.jpg', this)">📄 TM-FD-01194-1903.jpg</div>
+      <div class="tree-file" onclick="selectImage('Test_imagini/TM-FD-01194-1904.jpg', 'TM-FD-01194-1904.jpg', this)">📄 TM-FD-01194-1904.jpg</div>
+      <div class="tree-file" onclick="selectImage('Test_imagini/TM-FD-01194-1905.jpg', 'TM-FD-01194-1905.jpg', this)">📄 TM-FD-01194-1905.jpg</div>
+    `;
+    isFolderLoaded = true;
+    updatePostIngestButtonsState();
+    showFolderDetails();
+  }
+
+  document.getElementById('btn-explorare-tree').addEventListener('click', doExplorareFolder);
+
+  // RECEPȚIE SIP
+  document.getElementById('btn-receptie').addEventListener('click', () => {
+    if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+    const consoleOverlay = document.getElementById('console-overlay');
+    const consoleLogs = document.getElementById('console-logs');
+    const progressPanel = document.getElementById('progress-panel');
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressStatus = document.getElementById('progress-status');
+
+    progressStatus.textContent = "Procesare SIP...";
+    consoleLogs.innerHTML = '';
+    consoleOverlay.style.display = 'flex';
+    progressPanel.style.display = 'block';
+
+    const steps = [
+      { text: '[8:42:41 AM] Inițiere proces ingestie SIP...', pct: 5 },
+      { text: '[8:42:41 AM] Vă rugăm selectați Arhiva ZIP a pachetului...', pct: 15 },
+      { text: '[8:42:50 AM] ZIP selectat: TM-FD-12345-2026.08.24.zip', pct: 30 },
+      { text: '[8:42:50 AM] Vă rugăm selectați Manifestul Extern (ME-SIP.json)...', pct: 40 },
+      { text: '[8:42:53 AM] Manifest selectat: ME-SIP_TM-FD-12345-2026.08.24.json', pct: 50 },
+      { text: '[8:42:53 AM] Se verifică integritatea și se procesează datele...', pct: 65 },
+      { text: '[8:42:57 AM] Manifest extern [ME-SIP_TM-FD-12345-2026.08.24.json] valid conform cu [MI-SIP_TM-FD-12345-2026.08.24.json] »', pct: 75 },
+      { text: '[8:42:57 AM] Validare încrucișată finalizată cu succes »', pct: 80 },
+      { text: '[8:42:57 AM] Pachet SIP complet »', pct: 85 },
+      { text: '[8:42:58 AM] Structura conformă cu ME-SIP »', pct: 90 },
+      { text: '[8:42:58 AM] Integritate SIP validată »', pct: 95 },
+      { text: '[8:42:58 AM] Succes: Ingestie completă: 2 fișiere validate. Raport generat în folder.', pct: 98 },
+      { text: '[8:42:58 AM] Pachet [TM-FD-12345-2026.08.24] înregistrat în DB folosind [MI-SIP_TM-FD-12345-2026.08.24.json].', pct: 99 },
+      { text: '[8:42:58 AM] Se afișează structura ierarhică a pachetului. TM-FD-12345-2026.08.24_VALIDAT', pct: 100 },
+      { text: '[8:42:58 AM] Timp total procesare: 1.2 secunde', pct: 100 },
+      { text: '[8:42:58 AM] Viteză medie: 1.67 fișiere/secundă', pct: 100 },
+      { text: '[8:42:58 AM] Click pe consolă pentru a o închide █', pct: 100 }
+    ];
+
+    let stepIdx = 0;
+    const interval = setInterval(() => {
+      if (stepIdx < steps.length) {
+        const line = document.createElement('div');
+        line.className = 'console-line';
+        line.textContent = steps[stepIdx].text;
+        consoleLogs.appendChild(line);
+        consoleOverlay.scrollTop = consoleOverlay.scrollHeight;
+        progressBar.style.width = steps[stepIdx].pct + '%';
+        progressPercent.textContent = steps[stepIdx].pct + '%';
+        stepIdx++;
+      } else {
+        clearInterval(interval);
+        loadIngestedPackage();
+        openReport();
+      }
+    }, 250);
+  });
+
+  // SCANARE ANTIVIRUS
+  document.getElementById('btn-antivirus').addEventListener('click', () => {
+    if (!isFolderLoaded) return;
+    if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+    const consoleOverlay = document.getElementById('console-overlay');
+    const consoleLogs = document.getElementById('console-logs');
+    const progressPanel = document.getElementById('progress-panel');
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressStatus = document.getElementById('progress-status');
+
+    progressStatus.textContent = "Scanare Antivirus în desfășurare...";
+    consoleLogs.innerHTML = '';
+    consoleOverlay.style.display = 'flex';
+    progressPanel.style.display = 'block';
+
+    const steps = [
+      { text: '[10:48:41 AM] Pornire scanare antivirus pe: TM-FD-12345-2026.08.19_VALIDAT', pct: 20 },
+      { text: '[10:48:41 AM] Cale: C:\\Users\\Puribus\\Storage\\SIP_TM-FD-12345-2026.08.19\\TM-FD-12345-2026.08.19_VALIDAT', pct: 40 },
+      { text: '[10:48:41 AM] Motor: Windows Defender (MpCmdRun)', pct: 65 },
+      { text: '[10:48:41 AM] Data scanării: 24.08.2026, 10:48:41', pct: 85 },
+      { text: '[10:48:41 AM] Scanare finalizată cu succes', pct: 95 },
+      { text: '[10:48:41 AM] Rezultat: Curat (fără amenințări)', pct: 100 },
+      { text: '[10:48:41 AM] Click pe consolă pentru a o închide █', pct: 100 }
+    ];
+
+    let stepIdx = 0;
+    const interval = setInterval(() => {
+      if (stepIdx < steps.length) {
+        const line = document.createElement('div');
+        line.className = 'console-line';
+        line.textContent = steps[stepIdx].text;
+        consoleLogs.appendChild(line);
+        consoleOverlay.scrollTop = consoleOverlay.scrollHeight;
+        progressBar.style.width = steps[stepIdx].pct + '%';
+        progressPercent.textContent = steps[stepIdx].pct + '%';
+        stepIdx++;
+      } else {
+        clearInterval(interval);
+        addAntivirusEventToHistory();
+      }
+    }, 300);
+  });
+
+  function addAntivirusEventToHistory() {
+    const historyContent = document.getElementById('history-content');
+    const newCard = document.createElement('div');
+    newCard.className = 'event-card';
+    newCard.innerHTML = `
+      <div class="event-time">24 august 2026 la 07:48:41</div>
+      <div class="event-title">Tip eveniment: antivirus scan</div>
+      <div>Detalii: Scanare antivirus curată – 4 fișiere</div>
+      <div>Agent: Windows Defender MpCmdRun</div>
+    `;
+    historyContent.insertBefore(newCard, historyContent.firstChild);
+  }
+
+  function loadIngestedPackage() {
+    const treeView = document.getElementById('tree-view');
+    treeView.innerHTML = `
+      <div class="tree-folder selected" onclick="selectFolder('TM-FD-12345-2026.08.19_VALIDAT', this)">📁 TM-FD-12345-2026.08.19_VALIDAT (2)</div>
+      <div class="tree-file" onclick="selectImage('TM-FD-12345-2026.08.24_VALIDAT/TM-FD-01194-1901.jpeg', 'TM-FD-01194-1901.jpeg', this)">📄 TM-FD-01194-1901.jpeg</div>
+      <div class="tree-file" onclick="selectImage('TM-FD-12345-2026.08.24_VALIDAT/TM-FD-01194-1902.jpeg', 'TM-FD-01194-1902.jpeg', this)">📄 TM-FD-01194-1902.jpeg</div>
+    `;
+    showFolderDetails();
+    isFolderLoaded = true;
+    updatePostIngestButtonsState();
+  }
+
+  function selectFolder(folderName, el) {
+    document.querySelectorAll('.tree-folder, .tree-file').forEach(e => e.classList.remove('selected'));
+    if (el) el.classList.add('selected');
+    showFolderDetails();
+  }
+
+  function showFolderDetails() {
+    clearCenterDisplay('folder-title-view');
+    document.getElementById('folder-title-view').style.display = 'block';
+
+    document.getElementById('metadata-content').innerHTML = `
+      <div class="details-field"><span class="details-label">Denumire:</span> TM-FD-12345-2026.08.19_VALIDAT (2)</div>
+      <div class="details-field"><span class="details-label">Tip:</span> folder</div>
+      <div class="details-field"><span class="details-label">Cale:</span> C:\\Users\\Puribus\\Storage\\SIP_TM-FD-12345-2026.08.19\\TM-FD-12345-2026.08.19_VALIDAT</div>
+      <div class="details-field"><span class="details-label">MIME (extensie):</span> application/octet-stream</div>
+      <div class="details-field"><span class="details-label">Modificat:</span> 24.08.2026, 09:55:28</div>
+      <div class="details-field"><span class="details-label">UUID pachet:</span> <span class="uuid-highlight">db18bc38-43bd-4f9e-9d3d-e803b1517046</span></div>
+    `;
+
+    document.getElementById('history-content').innerHTML = `
+      <div class="event-card">
+        <div class="event-time">24 august 2026 la 09:55:30</div>
+        <div class="event-title">Tip eveniment: ingestion</div>
+        <div>Detalii: "Folder încărcat și analizat în MaD-oais"</div>
+        <div>Agent: MaD-oais - user: Puribus @ Lenovo-T470</div>
+      </div>
+      <div class="event-card">
+        <div class="event-time">24 august 2026 la 09:55:29</div>
+        <div class="event-title">Tip eveniment: metadata extracted</div>
+        <div>Detalii: Extracție completă metadate tehnice cu ExifTool</div>
+        <div>Agent: ExifTool v13.43 (MaD-oais, utilizator: Puribus)</div>
+      </div>
+      <div class="event-card">
+        <div class="event-time">24 august 2026 la 09:55:29</div>
+        <div class="event-title">Tip eveniment: ingestion fixity check</div>
+        <div>Detalii: Hash match OK: bacd7b01...</div>
+        <div>Agent: MaD-oais</div>
+      </div>
+    `;
+
+    // Expand METADATE & ISTORIC
+    document.getElementById('metadata-body').classList.remove('collapsed');
+    document.getElementById('arrow-metadata').textContent = '▼';
+    document.getElementById('history-body').classList.remove('collapsed');
+    document.getElementById('arrow-history').textContent = '▼';
+  }
+
+  function selectImage(path, filename, element) {
+    document.querySelectorAll('.tree-folder, .tree-file').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+
+    clearCenterDisplay('image-preview');
+    const previewContainer = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    previewImg.src = path;
+    previewContainer.style.display = 'flex';
+
+    document.getElementById('metadata-content').innerHTML = `
+      <div class="details-field"><span class="details-label">Denumire:</span> ${filename}</div>
+      <div class="details-field"><span class="details-label">Tip:</span> fișier</div>
+      <div class="details-field"><span class="details-label">Cale:</span> C:\\Users\\Puribus\\Storage\\SIP_TM-FD-12345-2026.08.19\\TM-FD-12345-2026.08.19_VALIDAT\\${filename}</div>
+      <div class="details-field"><span class="details-label">MIME (extensie):</span> image/jpeg</div>
+      <div class="details-field"><span class="details-label">MIME (ExifTool):</span> image/jpeg</div>
+      <div class="details-field"><span class="details-label">PUID (PRONOM):</span> x-fmt/391</div>
+      <div class="details-field"><span class="details-label">PDF/A Validation:</span> SKIP – N/A</div>
+      <div class="details-field"><span class="details-label">Modificat:</span> 2/17/2026, 11:00:02 AM</div>
+      <div class="details-field"><span class="details-label">SHA‑256:</span><br><code>bacd7b015c6769c1ed20f95aeb0a93a220ef54a55a72ab98416aefefef3a9579</code></div>
+      <div class="details-field"><span class="details-label">UUID:</span> 1222713f-9c7c-4f5e-b811-0be0e4130f8c</div>
+    `;
+
+    document.getElementById('history-content').innerHTML = `
+      <div class="event-card">
+        <div class="event-time">24 august 2026 la 08:42:54</div>
+        <div class="event-title">Tip eveniment: metadata extracted</div>
+        <div>Detalii: Extracție completă metadate tehnice cu ExifTool</div>
+        <div>Agent: ExifTool v13.43 (MaD-oais, utilizator: Puribus)</div>
+        <div>Rezultat: Succes</div>
+      </div>
+      <div class="event-card">
+        <div class="event-time">24 august 2026 la 08:42:54</div>
+        <div class="event-title">Tip eveniment: ingestion fixity check</div>
+        <div>Detalii: Hash match OK: bacd7b015c6769c1ed20f9...</div>
+        <div>Agent: MaD-oais</div>
+        <div>Rezultat: Succes</div>
+      </div>
+      <div class="event-card">
+        <div class="event-time">24 august 2026 la 08:42:54</div>
+        <div class="event-title">Tip eveniment: format identification</div>
+        <div>Detalii: { "mime": "image/jpeg", "puid": "x-fmt/391", "formatName": "Exchangeable Image File Format (Compressed)", "version": "2.2" }</div>
+        <div>Agent: ExifTool v13.43 + Siegfried v1.11.4</div>
+        <div>Rezultat: Succes</div>
+      </div>
+    `;
+  }
+
+  // Transfer obiecte
+  const transferBtn = document.getElementById('transferObjectsBtn');
+  if (transferBtn) {
+    transferBtn.addEventListener('click', () => {
+      if (!isFolderLoaded) return;
+      if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+      window.open('ocfl.html?from=oais', '_blank', 'width=1200,height=800');
+
+      const consoleOverlay = document.getElementById('console-overlay');
+      const consoleLogs = document.getElementById('console-logs');
+      const progressPanel = document.getElementById('progress-panel');
+      const progressBar = document.getElementById('progress-bar');
+      const progressPercent = document.getElementById('progress-percent');
+      const progressStatus = document.getElementById('progress-status');
+
+      if (progressStatus && consoleOverlay && progressPanel) {
+        progressStatus.textContent = "Transfer obiecte către OCFL...";
+        consoleLogs.innerHTML = '';
+        consoleOverlay.style.display = 'flex';
+        progressPanel.style.display = 'block';
+
+        const steps = [
+          { text: '[03:08:10 PM] Inițiere proces de transfer către depozitul OCFL v1...', pct: 20 },
+          { text: '[03:08:10 PM] Sincronizare structură directoare...', pct: 50 },
+          { text: '[03:08:11 PM] Pachete pregătite pentru ingestionare...', pct: 80 },
+          { text: '[03:08:11 PM] Transfer complet către OCFL — 1 obiect(e) trimise cu succes.', pct: 100 },
+          { text: '[03:08:11 PM] Click pe consolă pentru a o închide █', pct: 100 }
+        ];
+
+        let stepIdx = 0;
+        const interval = setInterval(() => {
+          if (stepIdx < steps.length) {
+            const line = document.createElement('div');
+            line.className = 'console-line';
+            line.textContent = steps[stepIdx].text;
+            consoleLogs.appendChild(line);
+            consoleOverlay.scrollTop = consoleOverlay.scrollHeight;
+            progressBar.style.width = steps[stepIdx].pct + '%';
+            progressPercent.textContent = steps[stepIdx].pct + '%';
+            stepIdx++;
+          } else {
+            clearInterval(interval);
+          }
+        }, 250);
+      }
+
+      if (typeof addEventToHistory === 'function') {
+        addEventToHistory('ocfl-transfer', 'Transfer complet către OCFL — 1 obiect(e) trimise.');
+      }
+    });
+  }
+
+// Transfer — acțiune pe click „Depozit OCFL”
+function runOcflTransfer() {
+  if (!isFolderLoaded) {
+    if (typeof showSuccessToast === 'function') {
+      showSuccessToast('ℹ️ Transfer', 'Încarcă mai întâi un folder (Explorare folder / Recepție SIP).');
+    } else {
+      alert('Încarcă mai întâi un folder (Explorare folder / Recepție SIP).');
+    }
+    return;
+  }
+  if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+  window.open('ocfl.html?from=oais', '_blank', 'width=1200,height=800');
+
+  const consoleOverlay = document.getElementById('console-overlay');
+  const consoleLogs = document.getElementById('console-logs');
+  const progressPanel = document.getElementById('progress-panel');
+  const progressBar = document.getElementById('progress-bar');
+  const progressPercent = document.getElementById('progress-percent');
+  const progressStatus = document.getElementById('progress-status');
+
+  if (progressStatus && consoleOverlay && progressPanel) {
+    progressStatus.textContent = "Transfer obiecte către OCFL...";
+    consoleLogs.innerHTML = '';
+    consoleOverlay.style.display = 'flex';
+    progressPanel.style.display = 'block';
+
+    const steps = [
+      { text: '[03:08:10 PM] Inițiere proces de transfer către depozitul OCFL v1...', pct: 20 },
+      { text: '[03:08:10 PM] Sincronizare structură directoare...', pct: 50 },
+      { text: '[03:08:11 PM] Pachete pregătite pentru ingestionare...', pct: 80 },
+      { text: '[03:08:11 PM] Transfer complet către OCFL — 1 obiect(e) trimise cu succes.', pct: 100 },
+      { text: '[03:08:11 PM] Click pe consolă pentru a o închide █', pct: 100 }
+    ];
+
+    let stepIdx = 0;
+    const interval = setInterval(() => {
+      if (stepIdx < steps.length) {
+        const line = document.createElement('div');
+        line.className = 'console-line';
+        line.textContent = steps[stepIdx].text;
+        consoleLogs.appendChild(line);
+        consoleOverlay.scrollTop = consoleOverlay.scrollHeight;
+        progressBar.style.width = steps[stepIdx].pct + '%';
+        progressPercent.textContent = steps[stepIdx].pct + '%';
+        stepIdx++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 250);
+  }
+
+  if (typeof addEventToHistory === 'function') {
+    addEventToHistory('ocfl-transfer', 'Transfer complet către OCFL — 1 obiect(e) trimise.');
+  }
+}
+
+// Transfer tabs
+document.querySelectorAll('.transfer-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.transfer-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    if (tab.dataset.tab === 'ocfl') {
+      runOcflTransfer();
+    } else if (tab.dataset.tab === 'folder') {
+      if (typeof showSuccessToast === 'function') {
+        showSuccessToast('📁 Folder întreg', 'Mod transfer: folder întreg (simulare).');
+      }
+    } else if (tab.dataset.tab === 'multiple') {
+      if (typeof showSuccessToast === 'function') {
+        showSuccessToast('📄 Fișiere multiple', 'Mod transfer: fișiere multiple (simulare).');
+      }
+    }
+  });
+});
+
+  // Derivate
+  const derivateBtn = document.getElementById('derivateBtn');
+  if (derivateBtn) {
+    derivateBtn.addEventListener('click', function() {
+      if (!isFolderLoaded) return;
+      if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+      window.open('derivate.html', '_blank');
+    });
+  }
+
+  // ────────────────────────────────────────────────
+  // INGESTIE — Verificare Criptare & Steganografie (center wizard)
+  // ────────────────────────────────────────────────
+
+  function openStegoWizard() {
+    clearCenterDisplay('stego-wizard');
+    const wizard = document.getElementById('stego-wizard');
+    if (wizard) wizard.classList.add('visible');
+    document.getElementById('stego-step-1').style.display = 'block';
+    document.getElementById('stego-step-2').style.display = 'none';
+  }
+
+  function closeStegoWizard() {
+    clearCenterDisplay();
+    const welcome = document.getElementById('welcome-block');
+    if (welcome) welcome.style.display = '';
+  }
+
+  const btnStego = document.getElementById('btn-stego');
+  if (btnStego) {
+    btnStego.addEventListener('click', () => {
+      if (!isFolderLoaded) return;
+      openStegoWizard();
+    });
+  }
+
+  const stegoBackBtn = document.getElementById('stego-back-btn');
+  if (stegoBackBtn) {
+    stegoBackBtn.addEventListener('click', () => closeStegoWizard());
+  }
+
+  const stegoCloseResults = document.getElementById('stego-close-results');
+  if (stegoCloseResults) {
+    stegoCloseResults.addEventListener('click', () => closeStegoWizard());
+  }
+
+  const stegoStartBtn = document.getElementById('stego-start-btn');
+  if (stegoStartBtn) {
+    stegoStartBtn.addEventListener('click', () => {
+      const consoleOverlay = document.getElementById('console-overlay');
+      const consoleLogs = document.getElementById('console-logs');
+      const progressPanel = document.getElementById('progress-panel');
+      const progressBar = document.getElementById('progress-bar');
+      const progressPercent = document.getElementById('progress-percent');
+      const progressStatus = document.getElementById('progress-status');
+
+      progressStatus.textContent = 'Scanare criptare & steganografie...';
+      consoleLogs.innerHTML = '';
+      consoleOverlay.style.display = 'flex';
+      progressPanel.style.display = 'block';
+
+      const steps = [
+        { text: '[9:20:26 PM] 🚀 Pornire audit...', pct: 10 },
+        { text: '[9:20:26 PM] ✓ Scanare finalizată. 5 fișiere găsite fizic.', pct: 25 },
+        { text: '[9:20:26 PM] 🔒 Fișiere criptate (prin extensie): 0', pct: 35 },
+        { text: '[9:20:26 PM] ✏️ Fișiere suspecte (Semnătură format invalidă): 0', pct: 45 },
+        { text: '[9:20:26 PM] 📦 Arhive criptate/parolate detectate: 0', pct: 52 },
+        { text: '[9:20:26 PM] 🔑 Fișiere parolate detectate: 0', pct: 58 },
+        { text: '[9:20:26 PM] 📊 Fișiere cu entropie ridicată: 0', pct: 65 },
+        { text: '[9:20:27 PM] 🖼️ Fișiere suspect steganografiate: 2', pct: 75 },
+        { text: '[9:20:27 PM] 🔐 Pre-calculare hash-uri fizice pentru reconciliere...', pct: 82 },
+        { text: '[9:20:27 PM] 🧬 Duplicate identificate: 0', pct: 88 },
+        { text: '[9:20:27 PM] 💾 Salvare automată raport în arhiva sistem...', pct: 94 },
+        { text: '[9:20:27 PM] ✅ Audit finalizat', pct: 97 },
+        { text: '[9:20:27 PM] ✅ AUDIT FINALIZAT — click pentru închiderea consolei.', pct: 100 },
+        { text: '[9:20:27 PM] ✅ Raport securitate salvat în istoric pentru TM-FD-00003', pct: 100 }
+      ];
+
+      let stepIdx = 0;
+      const interval = setInterval(() => {
+        if (stepIdx < steps.length) {
+          const line = document.createElement('div');
+          line.className = 'console-line';
+          line.textContent = steps[stepIdx].text;
+          consoleLogs.appendChild(line);
+          consoleOverlay.scrollTop = consoleOverlay.scrollHeight;
+          progressBar.style.width = steps[stepIdx].pct + '%';
+          progressPercent.textContent = steps[stepIdx].pct + '%';
+          stepIdx++;
+        } else {
+          clearInterval(interval);
+          const stegoLog = document.getElementById('stego-console-log');
+          if (stegoLog) {
+            stegoLog.innerHTML = steps.map(s => `<div class="log-line">${s.text}</div>`).join('');
+          }
+          // Reset extract buttons state
+          document.querySelectorAll('#stego-results-table .stego-actions').forEach(cell => {
+            const extractBtn = cell.querySelector('.stego-btn-extract');
+            const delBtn = cell.querySelector('.stego-btn-delete');
+            const badge = cell.querySelector('.stego-badge-extract');
+            if (badge) badge.remove();
+            if (extractBtn) extractBtn.style.display = '';
+            if (delBtn) delBtn.style.display = '';
+          });
+          document.getElementById('stego-step-1').style.display = 'none';
+          document.getElementById('stego-step-2').style.display = 'block';
+          if (typeof addEventToHistory === 'function') {
+            addEventToHistory('encryption & steganography check', '2 fișiere suspect steganografiate identificate în TM-FD-00003.');
+          }
+        }
+      }, 200);
+    });
+  }
+
+  // Extrage → deschide PDF + badge verde
+  document.getElementById('stego-results-table')?.addEventListener('click', (e) => {
+    const extractBtn = e.target.closest('.stego-btn-extract');
+    const deleteBtn = e.target.closest('.stego-btn-delete');
+    if (extractBtn) {
+      window.open('logo/stegano.png', '_blank');
+      const size = extractBtn.getAttribute('data-size') || '.7z';
+      const cell = extractBtn.closest('.stego-actions');
+      if (cell) {
+        extractBtn.style.display = 'none';
+        const badge = document.createElement('span');
+        badge.className = 'stego-badge-extract';
+        badge.textContent = size;
+        cell.insertBefore(badge, cell.firstChild);
+      }
+    } else if (deleteBtn) {
+      const row = deleteBtn.closest('tr');
+      if (row) {
+        row.style.opacity = '0.35';
+        row.style.textDecoration = 'line-through';
+        deleteBtn.disabled = true;
+        const ext = row.querySelector('.stego-btn-extract');
+        if (ext) ext.disabled = true;
+      }
+    }
+  });
+
+  // Deschide Folder Rapoarte → audit.html
+  const stegoReportsBtn = document.getElementById('stego-open-reports');
+  if (stegoReportsBtn) {
+    stegoReportsBtn.addEventListener('click', () => {
+      window.open('audit.html', '_blank', 'width=1200,height=800');
+    });
+  }
+
+  function addStegoEventToHistory() {
+    if (typeof addEventToHistory === 'function') {
+      addEventToHistory('encryption & steganography check', 'Scanare securitate finalizată.');
+    }
+  }
+
+  // Integrity & Technical modals
+  function getOrCreateModalContainer() {
+    let modalContainer = document.getElementById('custom-modal-overlay');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'custom-modal-overlay';
+      modalContainer.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); display: flex; align-items: center;
+        justify-content: center; z-index: 9999;
+      `;
+      document.body.appendChild(modalContainer);
+    }
+    return modalContainer;
+  }
+
+  document.getElementById('btn-integrity').addEventListener('click', () => {
+    if (!isFolderLoaded) return;
+    if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+    showIntegrityModal();
+  });
+
+  document.getElementById('btn-technical').addEventListener('click', () => {
+    if (!isFolderLoaded) return;
+    if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+    showTechnicalModal();
+  });
+
+  function showIntegrityModal() {
+    const modalContainer = getOrCreateModalContainer();
+    const content = `
+      <div class="modal-card">
+        <h3 style="margin-top:0; color:#4fc3f7;">Verificare Extensii & Duplicate</h3>
+        <div id="integrity-discovery-box" style="margin-bottom:10px; font-size:13px; color:#ccc;">
+          <div>🔍 Analiză rapidă amprente digitale SHA-256 și PRONOM / Siegfried...</div>
+        </div>
+        <div class="tools-inventory-bar" style="margin-bottom: 12px; font-size: 12px; color: #aaa;">
+          Ecosistem verificare:
+          <span class="tool-tag">Siegfried</span>
+          <span class="tool-tag">ExifTool</span>
+          <span class="tool-tag">SHA256</span>
+        </div>
+        <div id="integrity-results-placeholder" class="modal-results-scroll" style="min-height:180px; max-height:280px; overflow-y:auto;">
+          <p style="padding:10px; font-size:12px; color:#888; text-align:center;">Verificarea va identifica fișierele cu extensie necorespunzătoare (mismatches) și duplicatele din pachet.</p>
+        </div>
+        <div style="margin-top:15px; display:flex; justify-content:flex-end; gap:10px; flex-shrink: 0;">
+          <button id="integ-close" style="padding:6px 14px; cursor:pointer;">Închide</button>
+          <button id="integ-start" style="background:#0288d1; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Start scanare</button>
+        </div>
+      </div>
+    `;
+    modalContainer.innerHTML = content;
+    modalContainer.style.display = 'flex';
+    document.getElementById('integ-close').addEventListener('click', () => modalContainer.style.display = 'none');
+    document.getElementById('integ-start').addEventListener('click', () => runIntegrityAnalysis(modalContainer));
+  }
+
+  function runIntegrityAnalysis(modalContainer) {
+    const box = modalContainer.querySelector('#integrity-discovery-box');
+    if (box) box.innerHTML = '<div style="color: #4fc3f7;">⏳ Calculare hash-uri SHA-256 și potrivire tipuri MIME în curs...</div>';
+    setTimeout(() => {
+      const resultsPlaceholder = modalContainer.querySelector('#integrity-results-placeholder');
+      if (box) box.innerHTML = '<div style="color: #10b981;">✅ Analiză integritate finalizată!</div>';
+      resultsPlaceholder.innerHTML = `
+        <table class="modal-table" style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead>
+            <tr style="border-bottom:1px solid #334155; text-align:left;">
+              <th style="padding:6px;">Nume fișier</th>
+              <th style="padding:6px;">Problemă</th>
+              <th style="padding:6px;">Sursă</th>
+              <th style="padding:6px;">Acțiune</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="row-mismatch-1" style="background: rgba(239,68,68,0.08);">
+              <td class="file-name-cell" title="TM-FD-00135-01.pdf" style="padding:6px; font-weight:bold;">TM-FD-00135-01.pdf</td>
+              <td class="issue-cell" style="color:#ef4444; padding:6px;">⚠️ Mismatch: Mime real image/tiff (detectat .tif)</td>
+              <td style="padding:6px; color:#aaa;">Siegfried</td>
+              <td style="padding:6px;">
+                <button class="btn-small-act btn-act-fix" data-action="fix-ext" data-new-name="TM-FD-00135-01.tif" style="background:#059669; color:#fff; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:11px;">Corectează .tif</button>
+              </td>
+            </tr>
+            <tr class="duplicate-group-header" style="background: rgba(255, 200, 150, 0.1);">
+              <td colspan="4" style="padding:6px; font-weight:bold; color:#4CAF50; font-size:11px;">
+                Duplicate (2 apariții) – SHA-256: <code>e3b0c44298fc1c149afbf4c8996fb924...</code>
+              </td>
+            </tr>
+            <tr class="duplicate-row" style="background: rgba(255, 200, 150, 0.05);">
+              <td style="padding:6px;">IMG_002_copy.jpg</td>
+              <td style="padding:6px; color:#f87171;">🚨 Hash identic / Hash SHA-256 collisions</td>
+              <td style="padding:6px; color:#aaa;">SHA256 match</td>
+              <td style="padding:6px;">
+                <button class="btn-small-act btn-act-del" data-action="delete" style="background:#dc2626; color:#fff; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:11px;">Șterge duplicat</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+      resultsPlaceholder.onclick = (e) => {
+        const target = e.target;
+        const row = target.closest('tr');
+        if (target.dataset.action === 'fix-ext') {
+          const newName = target.dataset.newName || 'TM-FD-00135-01.tif';
+          const fileNameCell = row.querySelector('.file-name-cell');
+          if (fileNameCell) {
+            fileNameCell.textContent = newName;
+            fileNameCell.title = newName;
+            fileNameCell.style.color = '#34d399';
+          }
+          const issueCell = row.querySelector('.issue-cell');
+          if (issueCell) issueCell.innerHTML = '<span style="color:#10b981; font-weight:500;">✅ Extensie sincronizată (.tif)</span>';
+          row.style.background = 'rgba(16, 185, 129, 0.12)';
+          target.textContent = 'Corectat ✓';
+          target.style.background = '#334155';
+          target.disabled = true;
+          if (typeof addEventToHistory === 'function') {
+            addEventToHistory('extension fix', `Corectat extensie fișier în ${newName}`);
+          }
+        } else if (target.dataset.action === 'delete') {
+          if (row) {
+            row.style.opacity = '0';
+            setTimeout(() => {
+              const tbody = row.closest('tbody');
+              row.remove();
+              if (tbody && !tbody.querySelector('.duplicate-row')) {
+                const headerGroup = tbody.querySelector('.duplicate-group-header');
+                if (headerGroup) headerGroup.remove();
+              }
+            }, 300);
+          }
+          if (typeof addEventToHistory === 'function') {
+            addEventToHistory('duplicate remove', 'Șters fișier duplicat identificat prin SHA-256.');
+          }
+        }
+      };
+      if (typeof addEventToHistory === 'function') {
+        addEventToHistory('integrity check', 'Găsit 1 extensie greșită și 1 grup de duplicate SHA256.');
+      }
+    }, 1300);
+  }
+
+  function showTechnicalModal() {
+    const modalContainer = getOrCreateModalContainer();
+    const content = `
+      <div class="modal-card">
+        <h3 style="margin-top:0; color:#4fc3f7;">Analiză Tehnică — Validare Structură & Formate</h3>
+        <div id="tech-discovery-box" style="margin-bottom:10px; font-size:13px; color:#ccc;">
+          <div>🔍 Pregătire inspecție fișiere prin instrumente de specialitate...</div>
+        </div>
+        <div class="tools-inventory-bar">
+          Ecosistem analiză:
+          <span class="tool-tag">Siegfried</span>
+          <span class="tool-tag">QPDF</span>
+          <span class="tool-tag">VeraPDF</span>
+          <span class="tool-tag">ImageMagick</span>
+          <span class="tool-tag">ExifTool</span>
+          <span class="tool-tag">FFmpeg</span>
+        </div>
+        <div id="tech-results-placeholder" class="modal-results-scroll">
+          <p style="padding:10px; font-size:12px; color:#888;">Procesul va testa fișierele Media, PDF și TIFF pentru corupții sau erori de parsare structură.</p>
+        </div>
+        <div style="margin-top:15px; display:flex; justify-content:flex-end; gap:10px; flex-shrink: 0;">
+          <button id="tech-close" style="padding:6px 14px; cursor:pointer;">Închide</button>
+          <button id="tech-start" style="background:#0288d1; color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer;">Execută analiză</button>
+        </div>
+      </div>
+    `;
+    modalContainer.innerHTML = content;
+    modalContainer.style.display = 'flex';
+    document.getElementById('tech-close').addEventListener('click', () => modalContainer.style.display = 'none');
+    document.getElementById('tech-start').addEventListener('click', () => runTechnicalAnalysis(modalContainer));
+  }
+
+  function runTechnicalAnalysis(modalContainer) {
+    const box = modalContainer.querySelector('#tech-discovery-box');
+    if (box) box.innerHTML = '<div style="color: #4fc3f7;">⏳ Rulare inspecții QPDF, ImageMagick și FFprobe...</div>';
+    setTimeout(() => {
+      const resultsPlaceholder = modalContainer.querySelector('#tech-results-placeholder');
+      if (box) box.innerHTML = '<div style="color: #ff4d4d; font-weight:bold;">🚨 Scanare finalizată: 1 fișier corupt detectat!</div>';
+      resultsPlaceholder.innerHTML = `
+        <table class="modal-table">
+          <thead>
+            <tr>
+              <th>Nume fișier</th>
+              <th>Status / Motiv</th>
+              <th>Sursă Control</th>
+              <th>Acțiune</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>scan_master_001.tif</td>
+              <td style="color:#4caf50; font-weight:bold;">✅ OK [m:ImageMagick Valid]</td>
+              <td>ImageMagick</td>
+              <td><span style="color:#888; font-size:11px;">Nicio acțiune</span></td>
+            </tr>
+            <tr>
+              <td>raport_2026.pdf</td>
+              <td style="color:#ff4d4d; font-weight:bold;">❌ Error: Stream xref damaged</td>
+              <td>QPDF CLI</td>
+              <td><button class="btn-small-act btn-act-del" data-action="delete-corrupt">Șterge & Generează Martor</button></td>
+            </tr>
+            <tr>
+              <td>audio_interviu.wav</td>
+              <td style="color:#4caf50; font-weight:bold;">🎬 VALID [PCM 16-bit 44.1kHz]</td>
+              <td>FFprobe</td>
+              <td><span style="color:#888; font-size:11px;">Nicio acțiune</span></td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+      resultsPlaceholder.onclick = (e) => {
+        const target = e.target;
+        if (target.dataset.action === 'delete-corrupt') {
+          const row = target.closest('tr');
+          const fileName = row ? row.cells[0].textContent : 'Fișier PDF';
+          if (row) row.remove();
+          addEventToHistory('corrupt file remove', `Eliminat ${fileName} și generat martor PREMIS.`);
+        }
+      };
+      addEventToHistory('technical analysis', 'Verificare finalizată: 1 fișier PDF corupt identificat prin QPDF.');
+    }, 1500);
+  }
+
+  function addEventToHistory(eventType, details) {
+    const historyContent = document.getElementById('history-content');
+    if (!historyContent) return;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('ro-RO');
+    const newCard = document.createElement('div');
+    newCard.className = 'event-card';
+    newCard.innerHTML = `
+      <div class="event-time">${dateStr} la ${timeStr}</div>
+      <div class="event-title">Tip eveniment: ${eventType}</div>
+      <div>Detalii: ${details}</div>
+      <div>Agent: MaD-oais Inspection Module v1.0</div>
+    `;
+    historyContent.insertBefore(newCard, historyContent.firstChild);
+  }
+
+  // ────────────────────────────────────────────────
+  // PREGĂTIRE ARHIVĂ — Watermark, PDF, Structură, Grupare
+  // ────────────────────────────────────────────────
+
+  function showModalOverlay(html, width) {
+    let overlay = document.getElementById('custom-modal-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'custom-modal-overlay';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;';
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = '<div style="background:#1a1a2e;color:#e0e0f0;border-radius:10px;border:1px solid #2a2a40;box-shadow:0 12px 40px rgba(0,0,0,0.5);width:' + (width || '640px') + ';max-width:94vw;max-height:90vh;overflow:auto;">' + html + '</div>';
+    overlay.style.display = 'flex';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.style.display = 'none'; };
+    return overlay;
+  }
+
+  function closeModalOverlay() {
+    const o = document.getElementById('custom-modal-overlay');
+    if (o) o.style.display = 'none';
+  }
+
+  // Watermark
+  const btnWatermark = document.getElementById('btn-watermark');
+  if (btnWatermark) {
+    btnWatermark.addEventListener('click', function() {
+      if (!isFolderLoaded) return;
+      if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+      var html = '<div style="padding:18px 20px 20px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">' +
+        '<h2 style="margin:0;font-size:17px;color:#fff;">Configurare Watermark</h2>' +
+        '<button id="wm-close" style="background:transparent;border:none;color:#888;font-size:18px;cursor:pointer;">✕</button></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;"><div>' +
+        '<div style="color:#a78bfa;font-weight:600;margin-bottom:12px;">Fișiere selectate: 3</div>' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:6px;">Stil Watermark:</div>' +
+        '<div style="display:flex;gap:8px;margin-bottom:14px;">' +
+        '<button id="wm-style-line" style="flex:1;padding:8px;border:none;border-radius:6px;background:#7c3aed;color:#fff;font-weight:600;cursor:pointer;">Linie Unică</button>' +
+        '<button id="wm-style-grid" style="flex:1;padding:8px;border:none;border-radius:6px;background:#3a3a50;color:#ccc;font-weight:600;cursor:pointer;">Mozaic (Grid)</button></div>' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:4px;">Text Watermark:</div>' +
+        '<input id="wm-text" type="text" value="ARHIVELE NAȚIONALE" style="width:100%;padding:8px 10px;border:2px solid #c9a227;border-radius:6px;background:#14141d;color:#fff;font-size:13px;margin-bottom:12px;box-sizing:border-box;">' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:2px;">Poziție Orizontală (Axa X):</div>' +
+        '<input id="wm-x" type="range" min="0" max="100" value="35" style="width:100%;accent-color:#7c3aed;margin-bottom:8px;">' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:2px;">Poziție Verticală (Axa Y):</div>' +
+        '<input id="wm-y" type="range" min="0" max="100" value="45" style="width:100%;accent-color:#7c3aed;margin-bottom:8px;">' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:2px;" id="wm-font-label">Dimensiune Font: 75px</div>' +
+        '<input id="wm-font" type="range" min="12" max="120" value="75" style="width:100%;accent-color:#7c3aed;margin-bottom:8px;">' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:2px;">Opacitate text:</div>' +
+        '<input id="wm-opacity" type="range" min="10" max="100" value="85" style="width:100%;accent-color:#7c3aed;margin-bottom:8px;">' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:4px;">Culoare Text:</div>' +
+        '<input id="wm-color" type="color" value="#000000" style="width:100%;height:32px;border:1px solid #444;border-radius:4px;background:#111;margin-bottom:16px;cursor:pointer;">' +
+        '<button id="wm-apply" style="width:100%;padding:12px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Aplică Watermark</button>' +
+        '</div><div style="background:#12121c;border-radius:8px;display:flex;align-items:center;justify-content:center;min-height:320px;padding:16px;">' +
+        '<div id="wm-preview" style="background:#fff;width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;border-radius:2px;position:relative;overflow:hidden;">' +
+        '<span id="wm-preview-text" style="position:absolute;font-weight:700;color:#000;font-size:18px;opacity:0.85;pointer-events:none;white-space:nowrap;left:35%;top:45%;transform:translate(-50%,-50%);">ARHIVELE NAȚIONALE</span>' +
+        '</div></div></div></div>';
+      showModalOverlay(html, '720px');
+      function updatePreview() {
+        var t = document.getElementById('wm-preview-text');
+        var text = document.getElementById('wm-text').value || 'WATERMARK';
+        var x = document.getElementById('wm-x').value;
+        var y = document.getElementById('wm-y').value;
+        var font = document.getElementById('wm-font').value;
+        var op = document.getElementById('wm-opacity').value;
+        var col = document.getElementById('wm-color').value;
+        document.getElementById('wm-font-label').textContent = 'Dimensiune Font: ' + font + 'px';
+        t.textContent = text;
+        t.style.left = x + '%';
+        t.style.top = y + '%';
+        t.style.fontSize = Math.max(10, font * 0.28) + 'px';
+        t.style.opacity = op / 100;
+        t.style.color = col;
+      }
+      ['wm-text','wm-x','wm-y','wm-font','wm-opacity','wm-color'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', updatePreview);
+      });
+      document.getElementById('wm-style-line').onclick = function() {
+        this.style.background = '#7c3aed'; this.style.color = '#fff';
+        document.getElementById('wm-style-grid').style.background = '#3a3a50';
+        document.getElementById('wm-style-grid').style.color = '#ccc';
+      };
+      document.getElementById('wm-style-grid').onclick = function() {
+        this.style.background = '#7c3aed'; this.style.color = '#fff';
+        document.getElementById('wm-style-line').style.background = '#3a3a50';
+        document.getElementById('wm-style-line').style.color = '#ccc';
+      };
+      document.getElementById('wm-close').onclick = closeModalOverlay;
+      document.getElementById('wm-apply').onclick = function() {
+        var txt = document.getElementById('wm-text').value;
+        closeModalOverlay();
+        runConsoleProgress('Aplicare watermark...', [
+          { text: '[21:50:01] Pregătire watermark pe 3 fișiere...', pct: 20 },
+          { text: '[21:50:02] Aplicare text „' + txt + '”...', pct: 55 },
+          { text: '[21:50:03] Salvare derivate cu watermark...', pct: 85 },
+          { text: '[21:50:04] ✅ Watermark aplicat pe 3 fișiere.', pct: 100 },
+          { text: '[21:50:04] Click pe consolă pentru a o închide █', pct: 100 }
+        ], function() {
+          showSuccessToast('✅ Watermark', 'Watermark aplicat cu succes pe 3 fișiere.');
+          addEventToHistory('watermark applied', 'Watermark aplicat pe 3 fișiere.');
+        });
+      };
+    });
+  }
+
+  // Îmbinare PDF
+  const btnMergePdf = document.getElementById('btn-merge-pdf');
+  if (btnMergePdf) {
+    btnMergePdf.addEventListener('click', function() {
+      if (!isFolderLoaded) return;
+      if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+      var html = '<div style="background:#f5f7fa;color:#222;border-radius:10px;overflow:hidden;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #e0e4ea;">' +
+        '<div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;"><span style="width:18px;height:18px;border-radius:50%;background:#3b82f6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;">i</span> Îmbinare PDF</div>' +
+        '<button id="merge-close" style="background:transparent;border:none;color:#888;font-size:16px;cursor:pointer;">✕</button></div>' +
+        '<div style="padding:16px 20px 20px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;color:#333;font-size:13px;"><span style="width:22px;height:22px;border-radius:50%;background:#3b82f6;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">i</span> Alege modul de selecție</div>' +
+        '<button class="merge-opt" data-mode="folder" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:6px;background:#fff;border:1px solid #d0d7e2;border-radius:6px;color:#2563eb;font-size:13px;cursor:pointer;box-sizing:border-box;">→ Folder întreg</button>' +
+        '<button class="merge-opt" data-mode="files" style="display:block;width:100%;text-align:left;padding:10px 14px;margin-bottom:6px;background:#fff;border:1px solid #d0d7e2;border-radius:6px;color:#2563eb;font-size:13px;cursor:pointer;box-sizing:border-box;">→ Fișiere individuale</button>' +
+        '<button id="merge-cancel" style="display:block;width:100%;text-align:left;padding:10px 14px;background:#fff;border:1px solid #d0d7e2;border-radius:6px;color:#2563eb;font-size:13px;cursor:pointer;box-sizing:border-box;">→ Anulează</button>' +
+        '</div></div>';
+      var overlay = showModalOverlay(html, '360px');
+      overlay.querySelector('div').style.background = 'transparent';
+      overlay.querySelector('div').style.border = 'none';
+      overlay.querySelector('div').style.boxShadow = 'none';
+      document.getElementById('merge-close').onclick = closeModalOverlay;
+      document.getElementById('merge-cancel').onclick = closeModalOverlay;
+      overlay.querySelectorAll('.merge-opt').forEach(function(btn) {
+        btn.onclick = function() {
+          closeModalOverlay();
+          var mode = btn.dataset.mode === 'folder' ? 'folder întreg' : 'fișiere individuale';
+          runConsoleProgress('Îmbinare PDF...', [
+            { text: '[21:51:01] Selecție: ' + mode, pct: 15 },
+            { text: '[21:51:02] Colectare pagini PDF...', pct: 40 },
+            { text: '[21:51:03] Îmbinare documente...', pct: 75 },
+            { text: '[21:51:04] ✅ PDF îmbinat generat cu succes.', pct: 100 },
+            { text: '[21:51:04] Click pe consolă pentru a o închide █', pct: 100 }
+          ], function() {
+            showSuccessToast('✅ Îmbinare PDF', 'Document îmbinat din ' + mode + '.');
+            addEventToHistory('pdf merge', 'Îmbinare PDF (' + mode + ') finalizată.');
+          });
+        };
+      });
+    });
+  }
+
+  // Divizare PDF
+  const btnSplitPdf = document.getElementById('btn-split-pdf');
+  if (btnSplitPdf) {
+    btnSplitPdf.addEventListener('click', function() {
+      if (!isFolderLoaded) return;
+      if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+      var html = '<div style="padding:18px 20px 16px;">' +
+        '<h3 style="margin:0 0 12px;color:#38bdf8;font-size:15px;">Configurare Split PDF</h3>' +
+        '<hr style="border:none;border-top:1px solid #2a2a40;margin-bottom:14px;">' +
+        '<div style="font-size:13px;color:#fbbf24;margin-bottom:8px;">🎯 Domeniu aplicare:</div>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;cursor:pointer;"><input type="radio" name="split-scope" value="files" checked> Fișiere individuale (la alegere)</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;cursor:pointer;"><input type="radio" name="split-scope" value="folder"> Folder întreg (procesare în masă)</label>' +
+        '<div style="font-size:12px;color:#aaa;margin-bottom:8px;">Alege metoda de fragmentare:</div>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;cursor:pointer;"><input type="radio" name="split-method" value="pages" checked> După număr pagini</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;cursor:pointer;"><input type="radio" name="split-method" value="size"> După mărime fișier (MB)</label>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><span style="font-size:12px;color:#aaa;">Pagini per segment:</span>' +
+        '<input id="split-pages" type="number" value="50" min="1" style="width:70px;padding:5px 8px;background:#14141d;border:1px solid #3a3a50;border-radius:4px;color:#fff;"></div>' +
+        '<div style="display:flex;justify-content:flex-end;gap:10px;">' +
+        '<button id="split-cancel" style="padding:8px 16px;background:#2a2a3a;border:1px solid #444;border-radius:5px;color:#ccc;cursor:pointer;">Anulează</button>' +
+        '<button id="split-start" style="padding:8px 16px;background:#2563eb;border:none;border-radius:5px;color:#fff;font-weight:600;cursor:pointer;">Pornește Split</button></div></div>';
+      showModalOverlay(html, '400px');
+      document.getElementById('split-cancel').onclick = closeModalOverlay;
+      document.getElementById('split-start').onclick = function() {
+        var pages = document.getElementById('split-pages').value || '50';
+        closeModalOverlay();
+        runConsoleProgress('Divizare PDF...', [
+          { text: '[21:52:01] Configurare split: ' + pages + ' pagini / segment', pct: 20 },
+          { text: '[21:52:02] Analiză documente PDF...', pct: 45 },
+          { text: '[21:52:03] Generare segmente...', pct: 80 },
+          { text: '[21:52:04] ✅ Split finalizat. 4 segmente create.', pct: 100 },
+          { text: '[21:52:04] Click pe consolă pentru a o închide █', pct: 100 }
+        ], function() {
+          showSuccessToast('✅ Divizare PDF', 'Split finalizat — segmente de ' + pages + ' pagini.');
+          addEventToHistory('pdf split', 'Divizare PDF: ' + pages + ' pagini/segment.');
+        });
+      };
+    });
+  }
+
+  // Structură director
+  const btnStructDir = document.getElementById('btn-struct-dir');
+  if (btnStructDir) {
+    btnStructDir.addEventListener('click', function() {
+      if (!isFolderLoaded) return;
+      clearCenterDisplay('struct-dir-panel');
+      var panel = document.getElementById('struct-dir-panel');
+      if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'struct-dir-panel';
+        panel.className = 'audit-wizard visible';
+        panel.style.maxWidth = '700px';
+        document.getElementById('center-display').appendChild(panel);
+      }
+      panel.classList.add('visible');
+      panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;">' +
+        '<h2 style="margin:0;font-size:16px;color:#fff;">📁 Structură Director</h2>' +
+        '<div style="display:flex;gap:6px;">' +
+        '<button id="struct-copy" style="padding:5px 12px;background:#1e3a5f;border:1px solid #3b82f6;border-radius:5px;color:#93c5fd;font-size:12px;cursor:pointer;">📋 Copiază</button>' +
+        '<button id="struct-save" style="padding:5px 12px;background:#1e3a5f;border:1px solid #3b82f6;border-radius:5px;color:#93c5fd;font-size:12px;cursor:pointer;">💾 Salvează .txt</button>' +
+        '<button id="struct-close" style="padding:5px 12px;background:#3a1a1a;border:1px solid #7f1d1d;border-radius:5px;color:#fca5a5;font-size:12px;cursor:pointer;">🗑 Șterge</button></div></div>' +
+        '<div style="font-size:11px;color:#888;margin-bottom:12px;">30.08.2026 21:51 | C:\\Users\\puribus\\Desktop\\emitent2 | 2 directoare | 19 fișiere</div>' +
+        '<pre style="font-family:Consolas,monospace;font-size:12.5px;line-height:1.55;color:#c8d0e0;background:#12121c;border:1px solid #2a2a3a;border-radius:6px;padding:14px;overflow:auto;max-height:55vh;margin:0;">' +
+        '├── 📁 1\n│   ├── 🖼 BH-FD-00003-1-1(1)_0003_s.jpg\n│   ├── 🖼 BH-FD-00003-1-1(1)_0004_s.tiff\n│   ├── 🖼 BH-FD-00003-1-1(1)_0005_s.jpg\n│   ├── 📕 Inventar_digital.pdf\n│   ├── 📕 TM-FD-00001-01.pdf\n│   ├── 🖼 TM-FD-00001-02.tiff\n│   └── 🖼 TM-FD-00003-1-1(1)_0002_s.jpg\n└── 📁 2\n    ├── 🖼 BH-FD-00003-2-2601_0001_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0002_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0003_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0004_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0005_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0006_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0007_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0008_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0009_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0010_s.jpg\n    ├── 🖼 BH-FD-00003-2-2601_0011_s.jpg\n    └── 🖼 BH-FD-00003-2-2601_0012_s.jpg</pre>';
+      document.getElementById('struct-close').onclick = function() {
+        panel.classList.remove('visible');
+        panel.innerHTML = '';
+        var welcome = document.getElementById('welcome-block');
+        if (welcome) welcome.style.display = '';
+      };
+      document.getElementById('struct-copy').onclick = function() {
+        showSuccessToast('📋 Copiat', 'Structura directorului a fost copiată în clipboard (simulare).');
+      };
+      document.getElementById('struct-save').onclick = function() {
+        showSuccessToast('💾 Salvat', 'structură_director.txt salvat (simulare).');
+        addEventToHistory('directory structure', 'Structură director exportată în .txt');
+      };
+    });
+  }
+
+  // Grupare fișiere
+  const btnGroupFiles = document.getElementById('btn-group-files');
+  if (btnGroupFiles) {
+    btnGroupFiles.addEventListener('click', function() {
+      if (!isFolderLoaded) return;
+      clearCenterDisplay('group-files-panel');
+      var panel = document.getElementById('group-files-panel');
+      if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'group-files-panel';
+        panel.className = 'audit-wizard visible';
+        panel.style.maxWidth = '560px';
+        document.getElementById('center-display').appendChild(panel);
+      }
+      panel.classList.add('visible');
+      panel.innerHTML = '<h2 style="margin:0 0 18px;font-size:17px;color:#fff;">📁 Organizator fișiere</h2>' +
+        '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">' +
+        '<button id="group-split" style="flex:1;min-width:180px;padding:12px 16px;background:#38bdf8;color:#0c1222;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">↓ Împarte în foldere</button>' +
+        '<button id="group-merge" style="flex:1;min-width:180px;padding:12px 16px;background:#c4b5fd;color:#1e1b4b;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">↑ Unește în folderul părinte</button></div>' +
+        '<p id="group-hint" style="font-size:12.5px;color:#7dd3fc;line-height:1.6;margin:0;">💡 Selectează un folder pentru a-i grupa și distribui fișierele în subfoldere pe baza unor criterii (nume, dată, extensie etc.).</p>' +
+        '<div style="margin-top:20px;"><button id="group-close" style="padding:7px 14px;background:#2a2a3a;border:1px solid #444;border-radius:5px;color:#ccc;cursor:pointer;font-size:12px;">Închide</button></div>';
+      document.getElementById('group-close').onclick = function() {
+        panel.classList.remove('visible');
+        var welcome = document.getElementById('welcome-block');
+        if (welcome) welcome.style.display = '';
+      };
+      document.getElementById('group-split').onclick = function() {
+        document.getElementById('group-hint').innerHTML = '💡 Selectează un folder pentru a-i grupa și distribui fișierele în subfoldere pe baza unor criterii (nume, dată, extensie etc.).';
+        document.getElementById('group-hint').style.color = '#7dd3fc';
+        runConsoleProgress('Împărțire în foldere...', [
+          { text: '[21:53:01] Analiză fișiere după extensie / dată...', pct: 30 },
+          { text: '[21:53:02] Creare subfoldere...', pct: 60 },
+          { text: '[21:53:03] ✅ Fișiere distribuite în 3 subfoldere.', pct: 100 },
+          { text: '[21:53:03] Click pe consolă pentru a o închide █', pct: 100 }
+        ], function() {
+          showSuccessToast('✅ Împărțire', 'Fișierele au fost distribuite în subfoldere.');
+          addEventToHistory('file organize split', 'Fișiere împărțite în subfoldere.');
+        });
+      };
+      document.getElementById('group-merge').onclick = function() {
+        document.getElementById('group-hint').innerHTML = '💡 Scanează subfolderele adâncite și aduce recursiv toate fișierele înapoi în folderul rădăcină selectat, eliminând directoarele goale.';
+        document.getElementById('group-hint').style.color = '#c4b5fd';
+        runConsoleProgress('Unire în folderul părinte...', [
+          { text: '[21:54:01] Scanare subfoldere recursive...', pct: 25 },
+          { text: '[21:54:02] Mutare fișiere în rădăcină...', pct: 65 },
+          { text: '[21:54:03] Eliminare directoare goale...', pct: 90 },
+          { text: '[21:54:04] ✅ Toate fișierele unificate în folderul părinte.', pct: 100 },
+          { text: '[21:54:04] Click pe consolă pentru a o închide █', pct: 100 }
+        ], function() {
+          showSuccessToast('✅ Unire', 'Fișierele au fost aduse în folderul părinte.');
+          addEventToHistory('file organize merge', 'Fișiere unificate în folderul părinte.');
+        });
+      };
+    });
+  }
+
+  // ────────────────────────────────────────────────
+  // PREZERVARE — Audit manual + Programare audit automat
+  // ────────────────────────────────────────────────
+
+  const AUDIT_PATHS = [
+    'C:\\Arhiva\\Master',
+    'C:\\Users\\puribus\\Desktop\\TM-FD-00003'
+  ];
+  let auditPathIndex = 0;
+  let auditMode = 'manual'; // 'manual' | 'auto'
+
+  /**
+   * Curăță complet zona centrală înainte de orice acțiune nouă.
+   * exceptId (opțional): id-ul panoului care va rămâne / va fi afișat imediat după.
+   */
+  function clearCenterDisplay(exceptId) {
+    const idsHide = ['welcome-block', 'folder-title-view', 'image-preview'];
+    idsHide.forEach(function(id) {
+      if (exceptId && id === exceptId) return;
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    const wizards = ['audit-wizard', 'stego-wizard', 'struct-dir-panel', 'group-files-panel'];
+    wizards.forEach(function(id) {
+      if (exceptId && id === exceptId) return;
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('visible');
+        // ascunde și pașii interni dacă există
+        el.querySelectorAll('[id^="audit-step-"], [id^="stego-step-"], #audit-step-schedule').forEach(function(step) {
+          step.style.display = 'none';
+        });
+      }
+    });
+    // închide modalul central dacă e deschis (nu se aplică la acțiuni care deschid modal nou)
+    // NU închidem custom-modal-overlay aici — e gestionat separat
+  }
+
+  // alias pentru compatibilitate
+  function hideCenterPanels() {
+    clearCenterDisplay();
+  }
+
+  function showAuditStep(step) {
+    const map = {
+      1: 'audit-step-1',
+      schedule: 'audit-step-schedule',
+      2: 'audit-step-2',
+      3: 'audit-step-3'
+    };
+    Object.keys(map).forEach(k => {
+      const el = document.getElementById(map[k]);
+      if (el) el.style.display = 'none';
+    });
+    const target = document.getElementById(map[step]);
+    if (target) target.style.display = 'block';
+  }
+
+  function initScheduleDropdowns() {
+    const hourSel = document.getElementById('sched-hour');
+    const minSel = document.getElementById('sched-min');
+    if (!hourSel || hourSel.options.length > 0) return;
+    for (let h = 0; h < 24; h++) {
+      const opt = document.createElement('option');
+      opt.value = String(h).padStart(2, '0');
+      opt.textContent = String(h).padStart(2, '0');
+      if (h === 2) opt.selected = true;
+      hourSel.appendChild(opt);
+    }
+    for (let m = 0; m < 60; m += 5) {
+      const opt = document.createElement('option');
+      opt.value = String(m).padStart(2, '0');
+      opt.textContent = String(m).padStart(2, '0');
+      if (m === 0) opt.selected = true;
+      minSel.appendChild(opt);
+    }
+  }
+
+  function openAuditWizard(mode) {
+    auditMode = mode || 'manual';
+    clearCenterDisplay('audit-wizard');
+    const wizard = document.getElementById('audit-wizard');
+    wizard.classList.add('visible');
+    auditPathIndex = 0;
+    document.getElementById('audit-storage-path').value = AUDIT_PATHS[0];
+    initScheduleDropdowns();
+    const step1Title = document.querySelector('#audit-step-1 h2');
+    if (step1Title) {
+      step1Title.textContent = auditMode === 'auto'
+        ? 'Programare audit — Selectare storage'
+        : 'Audit prezervare — Selectare storage';
+    }
+    showAuditStep(1);
+  }
+
+  function closeAuditWizard() {
+    clearCenterDisplay();
+    const welcome = document.getElementById('welcome-block');
+    if (welcome) welcome.style.display = '';
+  }
+
+  const btnAuditManual = document.getElementById('btn-audit-manual');
+  if (btnAuditManual) {
+    btnAuditManual.addEventListener('click', () => openAuditWizard('manual'));
+  }
+
+  const btnAuditAuto = document.getElementById('btn-audit-auto');
+  if (btnAuditAuto) {
+    btnAuditAuto.addEventListener('click', () => openAuditWizard('auto'));
+  }
+
+  // Browse folder — cycle simulated paths
+  const auditBrowseBtn = document.getElementById('audit-browse-btn');
+  if (auditBrowseBtn) {
+    auditBrowseBtn.addEventListener('click', () => {
+      auditPathIndex = (auditPathIndex + 1) % AUDIT_PATHS.length;
+      document.getElementById('audit-storage-path').value = AUDIT_PATHS[auditPathIndex];
+      const name = AUDIT_PATHS[auditPathIndex].split('\\').pop();
+      const nameEl = document.getElementById('audit-storage-name');
+      if (nameEl) nameEl.textContent = name;
+    });
+  }
+
+  // Next from storage → schedule (auto) or config (manual)
+  const auditNextBtn = document.getElementById('audit-next-btn');
+  if (auditNextBtn) {
+    auditNextBtn.addEventListener('click', () => {
+      const path = document.getElementById('audit-storage-path').value;
+      const name = path.split('\\').pop() || path;
+      const nameEl = document.getElementById('audit-storage-name');
+      if (nameEl) nameEl.textContent = name;
+      if (auditMode === 'auto') {
+        showAuditStep('schedule');
+      } else {
+        showAuditStep(2);
+      }
+    });
+  }
+
+  // Schedule Back → storage
+  const schedBackBtn = document.getElementById('sched-back-btn');
+  if (schedBackBtn) {
+    schedBackBtn.addEventListener('click', () => showAuditStep(1));
+  }
+
+  // Schedule Next → config
+  const schedNextBtn = document.getElementById('sched-next-btn');
+  if (schedNextBtn) {
+    schedNextBtn.addEventListener('click', () => showAuditStep(2));
+  }
+
+  // Config Back → schedule (auto) or storage (manual)
+  const auditBackBtn = document.getElementById('audit-back-btn');
+  if (auditBackBtn) {
+    auditBackBtn.addEventListener('click', () => {
+      if (auditMode === 'auto') {
+        showAuditStep('schedule');
+      } else {
+        showAuditStep(1);
+      }
+    });
+  }
+
+  // Start audit → progress + step 3
+  const auditStartBtn = document.getElementById('audit-start-btn');
+  if (auditStartBtn) {
+    auditStartBtn.addEventListener('click', () => {
+      const consoleOverlay = document.getElementById('console-overlay');
+      const consoleLogs = document.getElementById('console-logs');
+      const progressPanel = document.getElementById('progress-panel');
+      const progressBar = document.getElementById('progress-bar');
+      const progressPercent = document.getElementById('progress-percent');
+      const progressStatus = document.getElementById('progress-status');
+
+      const freq = (document.getElementById('sched-freq') || {}).value || 'zilnic';
+      const hour = (document.getElementById('sched-hour') || {}).value || '02';
+      const min = (document.getElementById('sched-min') || {}).value || '00';
+      const dest = (document.getElementById('sched-dest') || {}).value || '';
+
+      if (auditMode === 'auto') {
+        progressStatus.textContent = 'Salvare programare audit...';
+      } else {
+        progressStatus.textContent = 'Audit prezervare în curs...';
+      }
+      consoleLogs.innerHTML = '';
+      consoleOverlay.style.display = 'flex';
+      progressPanel.style.display = 'block';
+
+      let steps;
+      if (auditMode === 'auto') {
+        steps = [
+          { text: `[9:10:01 PM] 📅 Înregistrare programare audit automat...`, pct: 15 },
+          { text: `[9:10:01 PM] Frecvență: ${freq} | Ora: ${hour}:${min}`, pct: 30 },
+          { text: `[9:10:02 PM] Destinatari notificări: ${dest}`, pct: 45 },
+          { text: '[9:10:02 PM] 🚀 Start procedură audit (validare configurare)...', pct: 55 },
+          { text: '[9:10:03 PM] ✓ Scanare finalizată. 3 fișiere găsite fizic.', pct: 70 },
+          { text: '[9:10:03 PM] 📁 Verificare existență Mastere (Critic)...', pct: 85 },
+          { text: '[9:10:04 PM] ⚠️ MASTER LIPSĂ: TM-FD-00003-1-1(1)_0002_s.jpg', pct: 92 },
+          { text: '[9:10:04 PM] ✅ Programare salvată. Audit de verificare finalizat.', pct: 100 },
+          { text: '[9:10:04 PM] Click pe consolă pentru a o închide █', pct: 100 }
+        ];
+      } else {
+        steps = [
+          { text: '[8:44:57 PM] 🚀 Start procedură audit...', pct: 8 },
+          { text: '[8:44:57 PM] ⚙️ Pregătire mediu de execuție...', pct: 15 },
+          { text: '[8:44:57 PM] 🚀 Pornire audit...', pct: 22 },
+          { text: '[8:44:57 PM] ✓ Scanare finalizată. 3 fișiere găsite fizic.', pct: 40 },
+          { text: '[8:44:57 PM] 📊 Fișiere cu entropie ridicată: 0', pct: 50 },
+          { text: '[8:44:57 PM] 🖼️ Fișiere suspect steganografiate: 0', pct: 58 },
+          { text: '[8:44:57 PM] 🔐 Pre-calculare hash-uri fizice pentru reconciliere...', pct: 70 },
+          { text: '[8:44:57 PM] 🧬 Duplicate identificate: 0', pct: 78 },
+          { text: '[8:44:57 PM] 📁 Verificare existență Mastere (Critic)...', pct: 88 },
+          { text: '[8:44:57 PM] ⚠️ MASTER LIPSĂ: TM-FD-00003-1-1(1)_0002_s.jpg', pct: 94 },
+          { text: '[8:44:57 PM] ✅ Audit finalizat. 1 problemă de integritate.', pct: 100 },
+          { text: '[8:44:57 PM] Click pe consolă pentru a o închide █', pct: 100 }
+        ];
+      }
+
+      let stepIdx = 0;
+      const interval = setInterval(() => {
+        if (stepIdx < steps.length) {
+          const line = document.createElement('div');
+          line.className = 'console-line';
+          line.textContent = steps[stepIdx].text;
+          consoleLogs.appendChild(line);
+          consoleOverlay.scrollTop = consoleOverlay.scrollHeight;
+          progressBar.style.width = steps[stepIdx].pct + '%';
+          progressPercent.textContent = steps[stepIdx].pct + '%';
+          stepIdx++;
+        } else {
+          clearInterval(interval);
+          const auditLog = document.getElementById('audit-console-log');
+          if (auditLog) {
+            auditLog.innerHTML = steps
+              .filter(s => !s.text.includes('Click pe consolă'))
+              .map(s => `<div class="log-line">${s.text}</div>`)
+              .join('');
+          }
+          showAuditStep(3);
+          if (auditMode === 'auto') {
+            if (typeof addEventToHistory === 'function') {
+              addEventToHistory('scheduled audit', `Programare audit automat: ${freq} la ${hour}:${min} — 1 MASTER LIPSĂ la verificare.`);
+            }
+            if (typeof showSuccessToast === 'function') {
+              showSuccessToast('✅ Programare salvată', `Audit programat ${freq} la ${hour}:${min}. Notificări: ${dest}`);
+            }
+          } else {
+            if (typeof addEventToHistory === 'function') {
+              addEventToHistory('preservation audit', 'Audit integritate manual finalizat — 1 MASTER LIPSĂ.');
+            }
+            if (typeof showSuccessToast === 'function') {
+              showSuccessToast('✅ Audit finalizat', '1 problemă de integritate: MASTER LIPSĂ pe disk.');
+            }
+          }
+        }
+      }, 220);
+    });
+  }
+
+  // Deschide Folder Rapoarte
+  const auditReportsBtn = document.getElementById('audit-open-reports');
+  if (auditReportsBtn) {
+    auditReportsBtn.addEventListener('click', () => {
+      showSuccessToast('📁 Folder rapoarte', 'Simulare: s-a deschis folderul Rapoarte_Audit pe disk.');
+    });
+  }
+
+  // ────────────────────────────────────────────────
+  // EVIDENȚĂ METADATE — simulări
+  // ────────────────────────────────────────────────
+
+  function runConsoleProgress(statusText, steps, onComplete) {
+    // La fiecare acțiune nouă (progress) curățăm zona centrală de wizards vechi
+    if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+
+    const consoleOverlay = document.getElementById('console-overlay');
+    const consoleLogs = document.getElementById('console-logs');
+    const progressPanel = document.getElementById('progress-panel');
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressStatus = document.getElementById('progress-status');
+
+    progressStatus.textContent = statusText;
+    consoleLogs.innerHTML = '';
+    consoleOverlay.style.display = 'flex';
+    progressPanel.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressPercent.textContent = '0%';
+
+    let stepIdx = 0;
+    const interval = setInterval(() => {
+      if (stepIdx < steps.length) {
+        const line = document.createElement('div');
+        line.className = 'console-line';
+        line.textContent = steps[stepIdx].text;
+        consoleLogs.appendChild(line);
+        consoleOverlay.scrollTop = consoleOverlay.scrollHeight;
+        progressBar.style.width = steps[stepIdx].pct + '%';
+        progressPercent.textContent = steps[stepIdx].pct + '%';
+        stepIdx++;
+      } else {
+        clearInterval(interval);
+        if (typeof onComplete === 'function') onComplete();
+      }
+    }, 280);
+  }
+
+  function showSuccessToast(title, message) {
+    let toast = document.getElementById('success-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'success-toast';
+      toast.style.cssText = `
+        position: fixed; top: 52px; right: 24px; z-index: 10000;
+        min-width: 280px; max-width: 420px;
+        background: #0f2a1a; border: 1px solid #22c55e;
+        border-radius: 8px; padding: 14px 18px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+        color: #e8f5e9; font-size: 13px; line-height: 1.45;
+        animation: toastIn 0.25s ease;
+      `;
+      document.body.appendChild(toast);
+      if (!document.getElementById('toast-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'toast-keyframes';
+        style.textContent = `
+          @keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+    toast.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <div>
+          <div style="font-weight:700; color:#4ade80; margin-bottom:4px;">${title}</div>
+          <div style="color:#c8e6c9;">${message}</div>
+        </div>
+        <button onclick="this.closest('#success-toast').style.display='none'"
+          style="background:transparent; border:none; color:#88aa88; cursor:pointer; font-size:16px; line-height:1;">×</button>
+      </div>
+    `;
+    toast.style.display = 'block';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => { toast.style.display = 'none'; }, 6000);
+  }
+
+  // Dashboard Interogări → deschide dashboard.html
+  const btnDashboard = document.getElementById('btn-dashboard');
+  if (btnDashboard) {
+    btnDashboard.addEventListener('click', () => {
+      if (typeof clearCenterDisplay === 'function') clearCenterDisplay();
+      window.open('dashboard.html', '_blank', 'width=1280,height=840');
+    });
+  }
+
+  // Analiză integritate DB
+  const btnDbIntegrity = document.getElementById('btn-db-integrity');
+  if (btnDbIntegrity) {
+    btnDbIntegrity.addEventListener('click', () => {
+      const steps = [
+        { text: '[18:30:01] Conectare la baza de date MaD-oais...', pct: 10 },
+        { text: '[18:30:01] Verificare integritate tabele: packages, files, events, agents...', pct: 25 },
+        { text: '[18:30:02] Control checksum pe indexuri secundare...', pct: 45 },
+        { text: '[18:30:03] Scanare referințe orfane (foreign keys)...', pct: 65 },
+        { text: '[18:30:04] Validare consistență PREMIS events ↔ objects...', pct: 80 },
+        { text: '[18:30:05] Analiză finalizată: 0 erori structurale, 0 referințe orfane.', pct: 95 },
+        { text: '[18:30:05] Integritate DB: OK', pct: 100 },
+        { text: '[18:30:05] Click pe consolă pentru a o închide █', pct: 100 }
+      ];
+      runConsoleProgress('Analiză integritate DB...', steps, () => {
+        showSuccessToast('✅ Integritate DB', 'Baza de date este consistentă. Nicio eroare structurală detectată.');
+        if (typeof addEventToHistory === 'function') {
+          addEventToHistory('db integrity check', 'Analiză integritate DB finalizată cu succes — 0 erori.');
+        }
+      });
+    });
+  }
+
+  // Remediere date DB
+  const btnDbRemediere = document.getElementById('btn-db-remediere');
+  if (btnDbRemediere) {
+    btnDbRemediere.addEventListener('click', () => {
+      const steps = [
+        { text: '[18:31:10] Pornire modul remediere date...', pct: 12 },
+        { text: '[18:31:10] Identificare înregistrări incomplete (metadate lipsă)...', pct: 28 },
+        { text: '[18:31:11] Reparare legături UUID pachet ↔ fișiere...', pct: 48 },
+        { text: '[18:31:12] Normalizare câmpuri MIME / PUID...', pct: 68 },
+        { text: '[18:31:13] Reconstrucție indexuri afectate...', pct: 85 },
+        { text: '[18:31:14] Remediere completă: 3 înregistrări corectate, 0 eșecuri.', pct: 98 },
+        { text: '[18:31:14] Succes: date DB remediate.', pct: 100 },
+        { text: '[18:31:14] Click pe consolă pentru a o închide █', pct: 100 }
+      ];
+      runConsoleProgress('Remediere date DB...', steps, () => {
+        showSuccessToast('✅ Remediere DB', '3 înregistrări au fost corectate. Indexurile au fost reconstruite cu succes.');
+        if (typeof addEventToHistory === 'function') {
+          addEventToHistory('db remediation', 'Remediere date DB: 3 înregistrări corectate.');
+        }
+      });
+    });
+  }
+
+  // Backup Bază de Date
+  const btnDbBackup = document.getElementById('btn-db-backup');
+  if (btnDbBackup) {
+    btnDbBackup.addEventListener('click', () => {
+      const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      const backupName = `MaD-oais_backup_${ts}.db`;
+      const steps = [
+        { text: '[18:32:01] Inițiere backup bază de date...', pct: 10 },
+        { text: '[18:32:01] Blocaj citire (shared lock) pe conexiunea principală...', pct: 25 },
+        { text: `[18:32:02] Export tabele → ${backupName}...`, pct: 45 },
+        { text: '[18:32:03] Calcul hash SHA-256 pe fișierul de backup...', pct: 70 },
+        { text: '[18:32:04] Verificare integritate copie backup...', pct: 88 },
+        { text: `[18:32:05] Backup salvat: Storage/Backups/${backupName}`, pct: 97 },
+        { text: '[18:32:05] Succes: backup DB finalizat.', pct: 100 },
+        { text: '[18:32:05] Click pe consolă pentru a o închide █', pct: 100 }
+      ];
+      runConsoleProgress('Backup bază de date...', steps, () => {
+        showSuccessToast('✅ Backup DB', `Backup creat cu succes:<br><code style="font-size:11px;color:#86efac;">Storage/Backups/${backupName}</code>`);
+        if (typeof addEventToHistory === 'function') {
+          addEventToHistory('db backup', `Backup DB creat: ${backupName}`);
+        }
+      });
+    });
+  }
+
+  // Analiză Dublate DB
+  const btnDbDublate = document.getElementById('btn-db-dublate');
+  if (btnDbDublate) {
+    btnDbDublate.addEventListener('click', () => {
+      const steps = [
+        { text: '[18:33:01] Pornire analiză dublate în baza de date...', pct: 12 },
+        { text: '[18:33:01] Scanare hash SHA-256 pe tabela files...', pct: 30 },
+        { text: '[18:33:02] Grupare după UUID / path relativ...', pct: 50 },
+        { text: '[18:33:03] Comparare metadate tehnice pentru coliziuni soft...', pct: 70 },
+        { text: '[18:33:04] Rezultat: 1 grup de dublate (2 înregistrări) identificat.', pct: 90 },
+        { text: '[18:33:05] Raport dublate generat în evidență.', pct: 98 },
+        { text: '[18:33:05] Analiză dublate finalizată cu succes.', pct: 100 },
+        { text: '[18:33:05] Click pe consolă pentru a o închide █', pct: 100 }
+      ];
+      runConsoleProgress('Analiză dublate DB...', steps, () => {
+        showSuccessToast('✅ Analiză dublate DB', 'Scanare finalizată. 1 grup de dublate (2 înregistrări) identificat și raportat.');
+        if (typeof addEventToHistory === 'function') {
+          addEventToHistory('db duplicates analysis', 'Analiză dublate DB: 1 grup (2 înregistrări) identificat.');
+        }
+      });
+    });
+  }
+
+  // Mobile sidebars toggle
+  function closeMobileSidebars() {
+    const left = document.querySelector('.sidebar-left');
+    const right = document.querySelector('.sidebar-right');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    const btnL = document.getElementById('toggle-left-sidebar');
+    const btnR = document.getElementById('toggle-right-sidebar');
+    if (left) left.classList.remove('open');
+    if (right) right.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('visible');
+    if (btnL) btnL.classList.remove('active');
+    if (btnR) btnR.classList.remove('active');
+  }
+
+  function setupMobileSidebars() {
+    const left = document.querySelector('.sidebar-left');
+    const right = document.querySelector('.sidebar-right');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    const btnL = document.getElementById('toggle-left-sidebar');
+    const btnR = document.getElementById('toggle-right-sidebar');
+
+    if (btnL && left) {
+      btnL.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const willOpen = !left.classList.contains('open');
+        if (right) right.classList.remove('open');
+        if (btnR) btnR.classList.remove('active');
+        left.classList.toggle('open', willOpen);
+        btnL.classList.toggle('active', willOpen);
+        if (backdrop) backdrop.classList.toggle('visible', willOpen);
+      });
+    }
+    if (btnR && right) {
+      btnR.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const willOpen = !right.classList.contains('open');
+        if (left) left.classList.remove('open');
+        if (btnL) btnL.classList.remove('active');
+        right.classList.toggle('open', willOpen);
+        btnR.classList.toggle('active', willOpen);
+        if (backdrop) backdrop.classList.toggle('visible', willOpen);
+      });
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', closeMobileSidebars);
+    }
+    // Close sidebars when an action is chosen (better mobile UX)
+    document.querySelectorAll('.sidebar-left .tree-folder, .sidebar-left .tree-file, .sidebar-right .btn-action').forEach(function(el) {
+      el.addEventListener('click', function() {
+        if (window.matchMedia('(max-width: 768px)').matches) {
+          setTimeout(closeMobileSidebars, 180);
+        }
+      });
+    });
+  }
+
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    updatePostIngestButtonsState();
+    bindDynamicHover();
+    setupMobileSidebars();
+  });
+  updatePostIngestButtonsState();
+  bindDynamicHover();
+  setupMobileSidebars();
+  </script>
+</body>
+</html>

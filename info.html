@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaD-oais</title>
+	<link rel="stylesheet" href="assets/css/info-dark.css">
+	<!--<link rel="stylesheet" href="assets/info-white.css">-->
+<style>
+
+</style>
+</head>
+<body class="info-body">
+    <div class="info-container">
+
+        <!-- Header -->
+        <div class="info-header">
+
+            <div class="info-title">Managemetul Arhivelor Digitale</div>
+        </div>
+
+        <!-- Linkuri -->
+        <div class="info-links">
+            <div class="info-link" data-file="despre.txt">Despre aplicație</div>
+		    <div class="info-link" data-file="licenta.txt">Licență</div>
+        </div>
+
+        <!-- Conținut -->
+        <div id="info-content" class="info-content"></div>
+
+        <div class="footer">
+		<img src="assets/logo.png" id="info-logo" class="info-logo" alt="Logo MaD-SIP"><br>
+            Mad-oais Suite • 2026
+        </div>
+    </div>
+
+    <script src="info.js"></script>
+    <script>
+        const links = document.querySelectorAll('.info-link');
+        const contentDiv = document.getElementById('info-content');
+        const logo = document.getElementById('info-logo');
+
+        links.forEach(link => {
+            link.addEventListener('click', async () => {
+                const file = link.dataset.file;
+                const isActive = link.classList.contains('active');
+
+                // Închide toate celelalte
+                links.forEach(l => l.classList.remove('active'));
+
+                if (isActive) {
+                    contentDiv.classList.remove('show');
+                    contentDiv.innerHTML = '';
+                } else {
+                    try {
+                        const text = await window.electronAPI.loadText(file);
+                        contentDiv.innerText = text;
+                        contentDiv.classList.add('show');
+                        link.classList.add('active');
+                    } catch (err) {
+                        contentDiv.innerText = "Eroare la încărcarea fișierului.";
+                        contentDiv.classList.add('show');
+                    }
+                }
+            });
+        });
+
+        // Click pe logo 
+        logo.addEventListener('click', () => {
+            contentDiv.classList.remove('show');
+            contentDiv.innerHTML = '';
+            links.forEach(l => l.classList.remove('active'));
+        });
+    </script>
+</body>
+</html>

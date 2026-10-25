@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mad-oais — Generator Derivate de Acces (Simulare)</title>
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #11111d;
+            --bg-panel: #1e1e2f;
+            --bg-sidebar: #181826;
+            --border-color: #3f3f5a;
+            --text: #e2e8f0;
+            --text-muted: #90caf9;
+            --accent: #4fc3f7;
+            --accent-hover: #0288d1;
+            --danger: #c0392b;
+            --success: #27ae60;
+            --warning: #e67e22;
+        }
+        [data-theme="light"] {
+            --bg-main: #f3f4f6;
+            --bg-panel: #ffffff;
+            --bg-sidebar: #f9fafb;
+            --border-color: #d1d5db;
+            --text: #1f2937;
+            --text-muted: #4b5563;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background-color: var(--bg-main); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12px; height: 100vh; overflow: hidden; }
+        .app-container { display: flex; height: 100vh; width: 100vw; }
+        .config-panel { width: 380px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+        .resizer { width: 5px; cursor: col-resize; background: var(--border-color); }
+        .preview-panel { flex: 1; padding: 10px; display: flex; flex-direction: column; background: var(--bg-main); overflow-y: auto; }
+        .accordion-item { border: 1px solid var(--border-color); border-radius: 3px; background: var(--bg-panel); overflow: hidden; }
+        .accordion-header { width: 100%; padding: 6px 8px; background: royalblue; color: white; border: none; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .accordion-content { display: none; padding: 6px 8px; border-top: 1px solid var(--border-color); }
+        .accordion-content.open { display: block; }
+        .input-group { display: flex; flex-direction: column; gap: 2px; margin-bottom: 5px; }
+        label { font-size: 10px; color: var(--text-muted); }
+        input, select { background: #2d2d44; color: var(--accent); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 2px; font-size: 11px; height: 24px; line-height: 1.2; }
+        [data-theme="light"] input, [data-theme="light"] select { background: #ffffff; color: #111827; }
+        .btn-action { background: var(--warning); color: white; border: none; padding: 4px 8px; border-radius: 2px; cursor: pointer; font-weight: bold; width: 100%; font-size: 12px; height: 28px; line-height: 1.2; }
+        .btn-action:hover { opacity: 0.9; }
+        .btn-secondary { background: #2d2d44; color: var(--accent); border: 1px solid var(--border-color); padding: 3px 8px; border-radius: 2px; cursor: pointer; font-size: 11px; height: 26px; line-height: 1.2; }
+        .btn-small { background: var(--bg-panel); color: var(--text); border: 1px solid var(--border-color); padding: 2px 6px; cursor: pointer; border-radius: 2px; font-size: 11px; height: 24px; }
+        .table-wrapper { overflow-x: auto; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th, td { border: 1px solid var(--border-color); padding: 4px 6px; text-align: left; }
+        #files-list li { padding: 8px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+        #files-list li:hover, #files-list li.active { background: rgba(79, 195, 247, 0.15); color: var(--accent); }
+        .single-preview-container { flex: 1; border: 1px solid var(--border-color); background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border-radius: 3px; }
+        .view-area-large { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .view-area-large img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.15s ease; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-content { background: var(--bg-panel); border: 1px solid var(--border-color); padding: 20px; border-radius: 6px; width: 450px; }
+        .side-action-btn { background: var(--bg-panel); color: var(--text); border: 1px solid var(--border-color); width: 35px; height: 35px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        #column-splitter { width: 5px; cursor: col-resize; background: var(--border-color); }
+    </style>
+</head>
+<body>
+<script>
+    (function () {
+        var savedTheme = localStorage.getItem('appTheme') || 'dark';
+        document.body.setAttribute('data-theme', savedTheme);
+    })();
+</script>
+<div class="app-container">
+<section class="config-panel" id="sidebar">
+    <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion('acc-tiff-normalize')">
+            <span>Normalizare TIFF Master</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div id="acc-tiff-normalize" class="accordion-content">
+            <div class="input-group">
+                <label>Mod normalizare</label>
+                <select id="tiff-normalize-mode">
+                    <option value="lzw">TIFF LZW (Lossless - Recomandat)</option>
+                    <option value="zip">TIFF ZIP (Lossless alternativ)</option>
+                </select>
+                <label>Rotire</label>
+                <select id="tiff-rotate">
+                    <option value="0">0°</option>
+                    <option value="90">90° ↻</option>
+                    <option value="180">180°</option>
+                    <option value="270">90° ↺</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>DPI Master</label>
+                <input type="number" id="tiff-dpi" value="300" min="72" max="1200">
+            </div>
+            <div class="input-group">
+                <label>Color Space</label>
+                <select id="tiff-colorspace">
+                    <option value="keep">Păstrează original</option>
+                    <option value="srgb">sRGB (Standardizare)</option>
+                    <option value="gray">Grayscale (Arhivare compactă)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="tiff-output-basename">Nume fișier</label>
+                <input type="text" id="tiff-output-basename" value="MASTER_TIFF">
+            </div>
+            <button id="start-tiff-normalization" class="btn-action" style="background: #27ae60;">
+                🟢 Pornește Normalizare TIFF Master
+            </button>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion('acc-individual')">
+            <span>Derivate individuale - Imagini</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div id="acc-individual" class="accordion-content">
+            <div class="input-group">
+                <label>Sursă (Format existent)</label>
+                <select id="source-ext"> 
+                    <option value=".tif">.TIF / .TIFF</option>
+                    <option value=".jpg">.JPG / .JPEG</option>
+                    <option value=".png">.PNG</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Țintă (Format derivat)</label>
+                <select id="target-ext">
+                    <option value=".jpg">.JPG (Acces rapid)</option>
+                    <option value=".jp2">.JP2 (JPEG 2000 - Arhivă)</option>
+                    <option value=".pdf">.PDF (Standard)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Rezoluție (DPI)</label>
+                <input type="number" id="target-dpi" value="150">
+            </div>
+            <div class="input-group">
+                <label>Compresie: <span id="rule-q-val">95</span>%</label>
+                <input type="range" id="rule-quality" min="75" max="98" value="95" oninput="document.getElementById('rule-q-val').innerText = this.value">
+            </div>
+            <button id="add-rule" class="btn-secondary" style="margin-bottom: 8px;">➕ Adaugă regulă</button>
+            <div class="table-wrapper">
+                <table id="rules-table">
+                    <thead>
+                        <tr><th>Sursă</th><th>Țintă</th><th>Setări</th><th>Acțiune</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button id="start-migration" class="btn-action" style="margin-top: 10px;">Pornește Generarea</button>
+        </div>
+    </div>
+    <!-- ACCORDION 3: PDF Multipage COMPLETAT -->
+    <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion('acc-pdf')">
+            <span>PDF pagini multiple</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        <div id="acc-pdf" class="accordion-content">
+            <div class="input-group">
+                <label style="margin-bottom:3px;">Preseturi rapide</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px;">
+                    <button type="button" class="pdf-preset-btn" data-preset="web"
+                            style="background:#1a3a4a; color:#4fc3f7; border:1px solid #4fc3f7; border-radius:2px; padding:3px 2px; cursor:pointer; font-size:10px; text-align:center; line-height:1.25;">
+                        🚀 Web / Acces<br><span style="font-size:10px; color:#90caf9;">~826KB · ✓</span>
+                    </button>
+                    <button type="button" class="pdf-preset-btn" data-preset="archive"
+                            style="background:#1a2a1a; color:#69f0ae; border:1px solid #69f0ae; border-radius:2px; padding:3px 2px; cursor:pointer; font-size:10px; text-align:center; line-height:1.25;">
+                        📦 Arhivă<br><span style="font-size:10px; color:#90caf9;">~2-3MB · HQ</span>
+                    </button>
+                    <button type="button" class="pdf-preset-btn" data-preset="print"
+                            style="background:#2a1a1a; color:#ff8a65; border:1px solid #ff8a65; border-radius:2px; padding:3px 2px; cursor:pointer; font-size:10px; text-align:center; line-height:1.25;">
+                        🖨️ Print<br><span style="font-size:10px; color:#90caf9;">~8-10MB · Max</span>
+                    </button>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                    <span style="font-size:10px; color:#888;">Activ: <span id="active-preset-label" style="color:#4fc3f7; font-weight:bold;">🖨️ Print</span></span>
+                    <button type="button" id="btn-save-preset" style="background:#2d2d44; color:#ffd54f; border:1px solid #ffd54f; border-radius:3px; padding:1px 6px; cursor:pointer; font-size:10px; height:22px;">💾 Salvează preset</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Opțiuni PDF</label>
+                <select id="pdf-standard-select" style="width:100%;">
+                    <option value="standard" selected>PDF Standard (v1.7)</option>
+                    <option value="pdfa">PDF/A-2b (Archival)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Format pagină</label>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <label style="display:flex; align-items:center; gap:3px; cursor:pointer; color:var(--text);"><input type="radio" name="pdf-page-mode" value="source"> Din sursă</label>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--text);"><input type="radio" name="pdf-page-mode" value="fixed" checked> Format fix</label>
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--text);"><input type="radio" name="pdf-page-mode" value="custom"> Custom</label>
+                </div>
+            </div>
+            <div id="pdf-format-fixed-block">
+                <div class="input-group">
+                    <label>Format standard</label>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <select id="pdf-page-format" style="flex:1;">
+                            <option value="A4">A4 (8.27 × 11.69 in)</option>
+                            <option value="A3">A3 (11.69 × 16.54 in)</option>
+                            <option value="A5">A5 (5.83 × 8.27 in)</option>
+                            <option value="Letter">Letter (8.5 × 11 in)</option>
+                            <option value="Legal">Legal (8.5 × 14 in)</option>
+                        </select>
+                        <button type="button" id="pdf-orientation-toggle" style="background:#2d2d44; color:#4fc3f7; border:1px solid #3f3f5a; padding:2px 8px; border-radius:2px; cursor:pointer; font-size:12px; height:24px;">🔄</button>
+                        <span id="pdf-orientation-label" style="font-size:11px; color:#90caf9; min-width:55px;">Portrait</span>
+                    </div>
+                </div>
+            </div>
+            <div id="pdf-format-custom-block" style="display:none;">
+                <div class="input-group">
+                    <label>Dimensiuni custom</label>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                        <input type="checkbox" id="pdf-constrain" checked style="width:auto; accent-color:#4fc3f7;">
+                        <label for="pdf-constrain" style="margin:0; font-size:11px; color:#90caf9; cursor:pointer;">🔗 Păstrează proporțiile</label>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:4px; align-items:end;">
+                        <div><span style="font-size:11px; color:#90caf9;">Lățime (in)</span><input type="number" id="pdf-custom-w" value="8.27" min="1" max="60" step="0.01" style="width:100%;"></div>
+                        <div style="font-size:16px; color:#4fc3f7; padding-bottom:4px;">🔗</div>
+                        <div><span style="font-size:11px; color:#90caf9;">Înălțime (in)</span><input type="number" id="pdf-custom-h" value="11.69" min="1" max="60" step="0.01" style="width:100%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label style="margin-bottom:3px;">Parametri imagine</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                    <div style="display:flex; flex-direction:column; gap:1px;"><span style="font-size:10px; color:#90caf9;">DPI ImageMagick</span><input type="number" id="pdf-dpi" value="600" min="75" max="1200"></div>
+                    <div style="display:flex; flex-direction:column; gap:1px;"><span style="font-size:10px; color:#90caf9;">DPI Ghostscript</span><input type="number" id="pdf-downsample" value="300" min="75" max="600"></div>
+                    <div style="display:flex; flex-direction:column; gap:1px;"><span style="font-size:10px; color:#90caf9;">Calitate JPEG %</span><input type="number" id="pdf-quality" value="90" min="10" max="100"></div>
+                    <div style="display:flex; flex-direction:column; gap:1px;"><span style="font-size:10px; color:#90caf9;">Sharpen (0–2)</span><input type="number" id="pdf-sharpen" value="0.1" min="0" max="2" step="0.1"></div>
+                </div>
+            </div>
+            <div id="pdf-calc-panel" style="background:#1a1a2e; border:1px solid #3f3f5a; border-radius:3px; padding:6px; margin-bottom:5px; font-family:monospace; font-size:11px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="color:#4fc3f7; font-weight:bold;">📐 Rezultat calculat</div>
+                    <button type="button" id="calc-toggle-btn" style="background:#2d2d44; color:#4fc3f7; border:1px solid #3f3f5a; border-radius:3px; padding:1px 6px; cursor:pointer; font-size:9px; height:20px;">▼ Vezi detalii</button>
+                </div>
+                <div id="calc-detail-list" style="display:none; margin-top:8px; border-top:1px solid #2d2d44; padding-top:8px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                        <span style="color:#888;">Pixeli (IM):</span><span id="calc-px" style="color:#69f0ae;">4962 × 7016 px</span>
+                        <span style="color:#888;">Fizic:</span><span id="calc-in" style="color:#69f0ae;">8.27 × 11.69 in</span>
+                        <span style="color:#888;">Pixeli (GS):</span><span id="calc-gs-px" style="color:#ffd54f;">2481 × 3508 px</span>
+                        <span style="color:#888;">JPG / pagină:</span><span id="calc-jpg-size" style="color:#ffd54f;">~2.8 MB</span>
+                        <span style="color:#888;">PDF estimat:</span><span id="calc-pdf-size" style="color:#ff8a65;">~8.4 MB</span>
+                        <span style="color:#888;">Nr. pagini:</span><span id="calc-pages" style="color:#888;">3</span>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Rotire imagini</label>
+                <select id="pdf-rotate">
+                    <option value="0">0° (fără rotire)</option>
+                    <option value="90">90° ↻</option>
+                    <option value="180">180°</option>
+                    <option value="270">90° ↺</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Adâncime culoare (bit depth)</label>
+                <select id="pdf-bitdepth">
+                    <option value="24">Color 24-bit (Standard)</option>
+                    <option value="8">Grayscale 8-bit</option>
+                    <option value="1">Binar 1-bit</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Crop manual</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+                    <div><span style="font-size:9px; color:#888;">Sus (px)</span><input type="number" id="pdf-crop-top" value="0" min="0" style="width:100%;"></div>
+                    <div><span style="font-size:9px; color:#888;">Jos (px)</span><input type="number" id="pdf-crop-bottom" value="0" min="0" style="width:100%;"></div>
+                    <div><span style="font-size:9px; color:#888;">Stânga (px)</span><input type="number" id="pdf-crop-left" value="0" min="0" style="width:100%;"></div>
+                    <div><span style="font-size:9px; color:#888;">Dreapta (px)</span><input type="number" id="pdf-crop-right" value="0" min="0" style="width:100%;"></div>
+                </div>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:5px;">
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-size:11px;">
+                    <input type="checkbox" id="pdf-watermark-enabled" style="accent-color:#a855f7; width:14px; height:14px;"> Watermark
+                </label>
+                <button type="button" id="pdf-wm-open-modal" style="display:none; padding:1px 6px; background:#a855f7; color:white; border:none; border-radius:2px; cursor:pointer; font-size:10px; height:20px;">⚙ Setări</button>
+                <span id="pdf-wm-status" style="display:none; font-size:10px; color:#a855f7;">✔ configurat</span>
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-size:11px;">
+                    <input type="checkbox" id="pdf-limit-size" checked style="accent-color:#22c55e; width:14px; height:14px;"> Split PDF &lt; 100MB
+                </label>
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-size:11px;">
+                    <input type="checkbox" id="pdf-use-subfolders" style="accent-color:#e67e22; width:14px; height:14px;"> Salvare în folder propriu
+                </label>
+            </div>
+            <button type="button" id="btn-generate-multipage-pdf" class="btn-action" style="background-color:#2563eb;">
+                <i class="fas fa-file-pdf"></i> Generare PDF Multipage
+            </button>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+                <button type="button" id="btn-stop-pdf" class="btn-secondary" disabled style="background-color:#c0392b; color:white; flex:1;">Stop</button>
+                <button type="button" id="btn-pause-pdf" class="btn-secondary" disabled style="background-color:#27ae60; color:white; flex:1;">Pauză</button>
+            </div>
+        </div>
+    </div>
+    <div id="progress-container" style="display: none; margin-top: 6px; padding: 5px; background: #1a1a2e; border-radius: 3px;">
+        <div id="pdf-status-text" style="font-size: 11px; margin-bottom: 3px; color: #4fc3f7; font-size:10px;">Pregătire...</div>
+        <div class="progress-bg" style="width: 100%; background: #2d2d44; height: 8px; border-radius: 2px; overflow: hidden;">
+            <div id="pdf-progress-bar" style="width: 0%; height: 100%; background: #27ae60; transition: width 0.2s;"></div>
+        </div>
+    </div>
+    <div style="margin-top: auto; display: flex; gap: 6px;">
+        <button id="merge-existing-pdf" class="btn-secondary" style="flex: 1; background: royalblue; color: white; height:26px; padding:3px 6px; font-size:11px;">⟐ Îmbină PDF</button>
+        <button id="split-pdf-with-dialog" class="btn-secondary" style="flex: 1; background: royalblue; color: white; height:26px; padding:3px 6px; font-size:11px;">⧉ Împarte PDF</button>
+    </div>
+</section>
+<div class="resizer" id="dragHandle"></div>
+<section class="preview-panel">
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <div id="drop-zone" style="flex: 1; border: 2px dashed #4fc3f7; padding: 15px; border-radius: 4px; text-align: center; background: rgba(79,195,247,0.05);">
+            <span>📥 Simulare Drag & Drop</span>
+            <p id="status-text" style="margin: 5px 0 0 0; color: var(--text-muted);">Fișiere încărcate automat pentru testare</p>
+        </div>
+        <div id="side-actions" style="display: flex; flex-direction: column; gap: 6px;">
+            <button id="refresh-page-btn" class="side-action-btn" title="Refresh" onclick="location.reload()">↻</button>
+            <button id="theme-toggle-btn" class="side-action-btn" title="Comută tema">⚪</button>
+        </div>
+    </div>
+    <div class="preview-header" style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+        <div class="nav-controls" style="display: inline-flex; gap: 4px;">
+            <button id="prev-file" class="btn-small">⬅️</button>
+            <span id="file-counter" style="align-self: center; font-size: 12px;">1 / 3</span>
+            <button id="next-file" class="btn-small">➡️</button>
+            <button onclick="zoomImage(0.1)" class="btn-small">➕</button>
+            <button onclick="zoomImage(-0.1)" class="btn-small">➖</button>
+            <button onclick="resetZoom()" class="btn-small">⛶</button>
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px; flex: 1; overflow: hidden;">
+        <div id="files-list-container" style="flex: 0 0 280px; display: flex; flex-direction: column; border: 1px solid var(--border-color); border-radius: 3px;">
+            <div style="padding: 8px; font-weight: bold; background: var(--bg-panel); border-bottom: 1px solid var(--border-color);">
+                📄 Fișiere (<span id="list-file-count">3</span>)
+            </div>
+            <ul id="files-list" style="flex: 1; overflow-y: auto; list-style: none; margin: 0; padding: 0;"></ul>
+        </div>
+        <div id="column-splitter"></div>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+            <div class="single-preview-container">
+                <div id="derivative-view" class="view-area-large">
+                    <img id="preview-img" src="" alt="Preview" style="display: none;">
+                    <p id="placeholder-text" class="placeholder-text">Selectează un fișier din listă...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+<div id="split-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h3><i class="fas fa-cut"></i> Configurare Split PDF</h3>
+        <p>Alege metoda de fragmentare:</p>
+        <div class="input-group">
+            <label><input type="radio" name="split-mode" value="pages" checked> Pagini per segment</label>
+            <label><input type="radio" name="split-mode" value="size"> Mărime segment (MB)</label>
+        </div>
+        <div class="input-group">
+            <input type="number" id="split-value" value="50" min="1">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button id="cancel-split" class="btn-secondary">Anulează</button>
+            <button id="confirm-split" class="btn-action" style="width: auto;">Pornește Split</button>
+        </div>
+    </div>
+</div>
+<div id="pdf-wm-modal" class="modal-overlay" style="display:none;">
+    <div style="background:#1e293b; border:1px solid #475569; border-radius:8px; width:820px; max-height:90vh; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.5); display:flex; flex-direction:column;">
+        <div style="padding:14px 20px; background:#0f172a; border-bottom:1px solid #475569; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <h2 style="margin:0; font-size:15px; color:white;">⚙ Configurare Watermark PDF</h2>
+            <button type="button" id="pdf-wm-modal-close" style="background:none; border:none; color:#94a3b8; font-size:26px; cursor:pointer; line-height:1;">&times;</button>
+        </div>
+        <div style="display:flex; gap:20px; padding:20px; overflow:auto;">
+            <div style="width:45%; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size:12px; color:#94a3b8; display:block; margin-bottom:5px;">Stil Watermark:</label>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" id="pdf-wm-style-single" style="flex:1; padding:7px; background:#a855f7; color:white; border:none; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">Linie Unică</button>
+                        <button type="button" id="pdf-wm-style-mosaic" style="flex:1; padding:7px; background:#334155; color:#94a3b8; border:none; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">Mozaic</button>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8; display:block; margin-bottom:3px;">Text Watermark:</label>
+                    <input type="text" id="pdf-wm-text" value="ARHIVELE NAȚIONALE" style="width:100%; padding:7px; background:#334155; border:1px solid #475569; border-radius:4px; color:white; font-size:13px; box-sizing:border-box;">
+                </div>
+                <div id="pdf-wm-position-group">
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px; color:#94a3b8;">Poziție Orizontală (X): <span id="pdf-wm-x-val">50</span>%</label>
+                        <input type="range" id="pdf-wm-x" min="5" max="95" value="50" style="width:100%; accent-color:#a855f7;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; color:#94a3b8;">Poziție Verticală (Y): <span id="pdf-wm-y-val">50</span>%</label>
+                        <input type="range" id="pdf-wm-y" min="5" max="95" value="50" style="width:100%; accent-color:#a855f7;">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Dimensiune Font: <span id="pdf-wm-size-val">30</span>px</label>
+                    <input type="range" id="pdf-wm-size" min="10" max="80" value="30" style="width:100%; accent-color:#a855f7;">
+                </div>
+                <div id="pdf-wm-density-group" style="display:none;">
+                    <label style="font-size:12px; color:#94a3b8;">Densitate Mozaic: <span id="pdf-wm-density-val">50</span></label>
+                    <input type="range" id="pdf-wm-density" min="10" max="200" value="50" style="width:100%; accent-color:#a855f7;">
+                </div>
+                <div id="pdf-wm-angle-group" style="display:none;">
+                    <label style="font-size:12px; color:#94a3b8;">Înclinare: <span id="pdf-wm-angle-val">-10</span>°</label>
+                    <input type="range" id="pdf-wm-angle" min="0" max="30" value="10" style="width:100%; accent-color:#a855f7;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8;">Opacitate: <span id="pdf-wm-opacity-val">5</span>/10</label>
+                    <input type="range" id="pdf-wm-opacity" min="1" max="10" value="5" style="width:100%; accent-color:#a855f7;">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:#94a3b8; display:block; margin-bottom:4px;">Culoare Text:</label>
+                    <input type="color" id="pdf-wm-color" value="#000000" style="width:100%; height:36px; padding:0; border:1px solid #475569; border-radius:4px; cursor:pointer;">
+                </div>
+            </div>
+            <div style="width:55%; background:#0f172a; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; gap:12px;">
+                <span style="font-size:11px; color:#64748b;">Preview</span>
+                <div id="pdf-wm-preview-page" style="width:200px; height:270px; background:white; border-radius:3px; position:relative; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.4);">
+                    <div id="pdf-wm-preview-text" style="position:absolute; font-family:Arial,sans-serif; font-weight:bold; pointer-events:none; white-space:nowrap; left:50%; top:50%; transform:translate(-50%,-50%); color:rgba(0,0,0,0.5); font-size:14px;">ARHIVELE NAȚIONALE</div>
+                </div>
+            </div>
+        </div>
+        <div style="padding:14px 20px; background:#0f172a; border-top:1px solid #475569; display:flex; justify-content:flex-end; gap:10px; flex-shrink:0;">
+            <button type="button" id="pdf-wm-modal-cancel" style="padding:8px 18px; background:#334155; color:#ccc; border:1px solid #475569; border-radius:4px; cursor:pointer; font-size:13px;">Anulează</button>
+            <button type="button" id="pdf-wm-modal-save" style="padding:8px 18px; background:#a855f7; color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px; font-weight:bold;">✔ Salvează configurația</button>
+        </div>
+    </div>
+</div>
+<script>
+    const mockFiles = [
+        { name: "TM-FD-12345-1.jpg", size: "14.2 MB", url: "./TM-FD-12345-1.jpg" },
+        { name: "TM-FD-12345-2.jpg", size: "15.1 MB", url: "./TM-FD-12345-2.jpg" },
+        { name: "TM-FD-12345-3.jpg", size: "13.8 MB", url: "./TM-FD-12345-3.jpg" },
+        { name: "TM-FD-12345-4.jpg", size: "15.1 MB", url: "./TM-FD-12345-4.jpg" },
+        { name: "TM-FD-12345-5.jpg", size: "13.8 MB", url: "./TM-FD-12345-5.jpg" }
+    ];
+    let currentIndex = 0;
+    let currentZoom = 1;
+    function initSim() {
+        const listEl = document.getElementById('files-list');
+        listEl.innerHTML = '';
+        mockFiles.forEach((file, idx) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>📄 ${file.name}</span><small style="color:var(--text-muted)">${file.size}</small>`;
+            li.onclick = () => selectFile(idx);
+            listEl.appendChild(li);
+        });
+        document.getElementById('list-file-count').innerText = mockFiles.length;
+        selectFile(0);
+    }
+    function selectFile(index) {
+        currentIndex = index;
+        const file = mockFiles[index];
+        const img = document.getElementById('preview-img');
+        const placeholder = document.getElementById('placeholder-text');
+        img.onerror = () => {
+            img.style.display = 'none';
+            placeholder.style.display = 'block';
+            placeholder.innerHTML = `⚠️ Nu se poate previzualiza <b>${file.name}</b><br><small style="color:var(--text-muted)">TIFF nu e afișat nativ de toate browserele.<br>Pune fișierele lângă HTML sau folosește Chrome/Edge cu extensie, ori convertește la JPG.</small>`;
+        };
+        img.onload = () => {
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        img.src = file.url;
+        document.getElementById('file-counter').innerText = `${index + 1} / ${mockFiles.length}`;
+        document.querySelectorAll('#files-list li').forEach((item, i) => item.classList.toggle('active', i === index));
+        resetZoom();
+    }
+    document.getElementById('prev-file').onclick = () => { if(currentIndex > 0) selectFile(currentIndex - 1); };
+    document.getElementById('next-file').onclick = () => { if(currentIndex < mockFiles.length - 1) selectFile(currentIndex + 1); };
+    function zoomImage(delta) {
+        currentZoom = Math.max(0.5, Math.min(3, currentZoom + delta));
+        document.getElementById('preview-img').style.transform = `scale(${currentZoom})`;
+    }
+    function resetZoom() {
+        currentZoom = 1;
+        document.getElementById('preview-img').style.transform = 'scale(1)';
+    }
+    function toggleAccordion(id) {
+        const content = document.getElementById(id);
+        const isOpen = content.classList.contains('open');
+        document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('open'));
+        if (!isOpen) content.classList.add('open');
+    }
+    function runSimulationProcess(title) {
+        const container = document.getElementById('progress-container');
+        const bar = document.getElementById('pdf-progress-bar');
+        const status = document.getElementById('pdf-status-text');
+        container.style.display = 'block';
+        let progress = 0;
+        const stopBtn = document.getElementById('btn-stop-pdf');
+        const pauseBtn = document.getElementById('btn-pause-pdf');
+        stopBtn.disabled = false;
+        pauseBtn.disabled = false;
+        const interval = setInterval(() => {
+            progress += 10;
+            bar.style.width = progress + '%';
+            status.innerText = `${title}: ${progress}% completat...`;
+            if (progress >= 100) {
+                clearInterval(interval);
+                status.innerText = `✅ ${title} finalizat cu succes!`;
+                stopBtn.disabled = true;
+                pauseBtn.disabled = true;
+            }
+        }, 300);
+        stopBtn.onclick = () => {
+            clearInterval(interval);
+            status.innerText = "❌ Proces oprit de utilizator.";
+            bar.style.width = '0%';
+            stopBtn.disabled = true;
+            pauseBtn.disabled = true;
+        };
+    }
+    document.getElementById('start-tiff-normalization').onclick = () => runSimulationProcess("Normalizare TIFF");
+    document.getElementById('start-migration').onclick = () => runSimulationProcess("Generare Derivate Imagini");
+    document.getElementById('btn-generate-multipage-pdf').onclick = () => runSimulationProcess("Generare PDF Multipage");
+    document.getElementById('add-rule').onclick = () => {
+        const src = document.getElementById('source-ext').value;
+        const tgt = document.getElementById('target-ext').value;
+        const dpi = document.getElementById('target-dpi').value;
+        const tbody = document.querySelector('#rules-table tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${src}</td><td>${tgt}</td><td>${dpi} DPI</td><td><button onclick="this.closest('tr').remove()" class="btn-small">✕</button></td>`;
+        tbody.appendChild(tr);
+    };
+    const splitModal = document.getElementById('split-modal');
+    document.getElementById('split-pdf-with-dialog').onclick = () => splitModal.style.display = 'flex';
+    document.getElementById('cancel-split').onclick = () => splitModal.style.display = 'none';
+    document.getElementById('confirm-split').onclick = () => { splitModal.style.display = 'none'; runSimulationProcess("Split PDF"); };
+    document.getElementById('merge-existing-pdf').onclick = () => runSimulationProcess("Îmbinare PDF-uri");
+    document.getElementById('theme-toggle-btn').onclick = () => {
+        const current = document.body.getAttribute('data-theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', next);
+        localStorage.setItem('appTheme', next);
+        document.getElementById('theme-toggle-btn').innerText = next === 'dark' ? '⚪' : '⚫';
+    };
+    const presets = {
+        web:     { dpi: 150, gs: 100, quality: 55, sharpen: 0.3, label: '🚀 Web / Acces' },
+        archive: { dpi: 300, gs: 150, quality: 75, sharpen: 0.5, label: '📦 Arhivă' },
+        print:   { dpi: 600, gs: 300, quality: 90, sharpen: 0.1, label: '🖨️ Print' }
+    };
+    document.querySelectorAll('.pdf-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const p = presets[btn.dataset.preset];
+            if (!p) return;
+            document.getElementById('pdf-dpi').value = p.dpi;
+            document.getElementById('pdf-downsample').value = p.gs;
+            document.getElementById('pdf-quality').value = p.quality;
+            document.getElementById('pdf-sharpen').value = p.sharpen;
+            document.getElementById('active-preset-label').textContent = p.label;
+            updateCalcPreview();
+        });
+    });
+    document.getElementById('btn-save-preset').onclick = () => alert('💾 Preset personalizat salvat (simulare).');
+    document.querySelectorAll('input[name="pdf-page-mode"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            const mode = radio.value;
+            document.getElementById('pdf-format-fixed-block').style.display = mode === 'fixed' ? 'block' : 'none';
+            document.getElementById('pdf-format-custom-block').style.display = mode === 'custom' ? 'block' : 'none';
+        });
+    });
+    let isPortrait = true;
+    document.getElementById('pdf-orientation-toggle').onclick = () => {
+        isPortrait = !isPortrait;
+        document.getElementById('pdf-orientation-label').textContent = isPortrait ? 'Portrait' : 'Landscape';
+    };
+    document.getElementById('calc-toggle-btn').onclick = () => {
+        const list = document.getElementById('calc-detail-list');
+        const btn = document.getElementById('calc-toggle-btn');
+        if (list.style.display === 'none') { list.style.display = 'block'; btn.textContent = '▲ Ascunde'; }
+        else { list.style.display = 'none'; btn.textContent = '▼ Vezi detalii'; }
+    };
+    function updateCalcPreview() {
+        const dpi = +document.getElementById('pdf-dpi').value || 300;
+        const gs = +document.getElementById('pdf-downsample').value || 150;
+        const q = +document.getElementById('pdf-quality').value || 75;
+        const wIn = 8.27, hIn = 11.69;
+        const imW = Math.round(wIn * dpi), imH = Math.round(hIn * dpi);
+        const gsW = Math.round(wIn * gs), gsH = Math.round(hIn * gs);
+        const jpgMb = ((gsW * gsH * 3 * (q / 100)) / (1024 * 1024)).toFixed(1);
+        const pdfMb = (jpgMb * 3 * 0.95).toFixed(1);
+        document.getElementById('calc-px').textContent = `${imW} × ${imH} px`;
+        document.getElementById('calc-in').textContent = `${wIn} × ${hIn} in`;
+        document.getElementById('calc-gs-px').textContent = `${gsW} × ${gsH} px`;
+        document.getElementById('calc-jpg-size').textContent = `~${jpgMb} MB`;
+        document.getElementById('calc-pdf-size').textContent = `~${pdfMb} MB`;
+        document.getElementById('calc-pages').textContent = '3';
+    }
+    ['pdf-dpi', 'pdf-downsample', 'pdf-quality'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateCalcPreview);
+    });
+    const wmCheckbox = document.getElementById('pdf-watermark-enabled');
+    const wmOpenBtn = document.getElementById('pdf-wm-open-modal');
+    const wmStatus = document.getElementById('pdf-wm-status');
+    const wmModal = document.getElementById('pdf-wm-modal');
+    wmCheckbox.addEventListener('change', () => {
+        wmOpenBtn.style.display = wmCheckbox.checked ? 'inline-block' : 'none';
+        if (!wmCheckbox.checked) wmStatus.style.display = 'none';
+    });
+    wmOpenBtn.onclick = () => { wmModal.style.display = 'flex'; };
+    document.getElementById('pdf-wm-modal-close').onclick = () => { wmModal.style.display = 'none'; };
+    document.getElementById('pdf-wm-modal-cancel').onclick = () => { wmModal.style.display = 'none'; };
+    document.getElementById('pdf-wm-modal-save').onclick = () => { wmModal.style.display = 'none'; wmStatus.style.display = 'inline'; };
+    document.getElementById('pdf-wm-style-single').onclick = function () {
+        this.style.background = '#a855f7'; this.style.color = 'white';
+        document.getElementById('pdf-wm-style-mosaic').style.background = '#334155';
+        document.getElementById('pdf-wm-style-mosaic').style.color = '#94a3b8';
+        document.getElementById('pdf-wm-position-group').style.display = 'block';
+        document.getElementById('pdf-wm-density-group').style.display = 'none';
+        document.getElementById('pdf-wm-angle-group').style.display = 'none';
+    };
+    document.getElementById('pdf-wm-style-mosaic').onclick = function () {
+        this.style.background = '#a855f7'; this.style.color = 'white';
+        document.getElementById('pdf-wm-style-single').style.background = '#334155';
+        document.getElementById('pdf-wm-style-single').style.color = '#94a3b8';
+        document.getElementById('pdf-wm-position-group').style.display = 'none';
+        document.getElementById('pdf-wm-density-group').style.display = 'block';
+        document.getElementById('pdf-wm-angle-group').style.display = 'block';
+    };
+    function updateWmPreview() {
+        const text = document.getElementById('pdf-wm-text').value || 'ARHIVELE NAȚIONALE';
+        const size = document.getElementById('pdf-wm-size').value;
+        const opacity = document.getElementById('pdf-wm-opacity').value / 10;
+        const color = document.getElementById('pdf-wm-color').value;
+        const x = document.getElementById('pdf-wm-x').value;
+        const y = document.getElementById('pdf-wm-y').value;
+        const el = document.getElementById('pdf-wm-preview-text');
+        el.textContent = text;
+        el.style.fontSize = (size * 0.45) + 'px';
+        el.style.color = color;
+        el.style.opacity = opacity;
+        el.style.left = x + '%';
+        el.style.top = y + '%';
+        el.style.transform = 'translate(-50%, -50%)';
+    }
+    ['pdf-wm-x', 'pdf-wm-y', 'pdf-wm-size', 'pdf-wm-opacity', 'pdf-wm-density', 'pdf-wm-angle'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => {
+            const map = { 'pdf-wm-x':'pdf-wm-x-val','pdf-wm-y':'pdf-wm-y-val','pdf-wm-size':'pdf-wm-size-val','pdf-wm-opacity':'pdf-wm-opacity-val','pdf-wm-density':'pdf-wm-density-val','pdf-wm-angle':'pdf-wm-angle-val' };
+            const valEl = document.getElementById(map[id]);
+            if (valEl) valEl.textContent = (id === 'pdf-wm-angle' ? '-' : '') + el.value;
+            updateWmPreview();
+        });
+    });
+    document.getElementById('pdf-wm-text').addEventListener('input', updateWmPreview);
+    document.getElementById('pdf-wm-color').addEventListener('input', updateWmPreview);
+    initSim();
+    updateCalcPreview();
+</script>
+</body>
+</html>

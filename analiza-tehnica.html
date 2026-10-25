@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analiză Tehnică</title>
+  <link rel="stylesheet" href="assets/css/analiza.css">
+</head>
+<body>
+  <h1 id="folder-title">Rezultate analiză tehnică</h1>
+  <div class="stats">
+    <strong id="suspecte-count">Se încarcă...</strong>
+	<div id="tools-inventory" class="tools-inventory-bar"></div>
+  </div>
+
+  <!-- Tabel pentru analiza tehnică (corupte, ImageMagick, QPDF, ExifTool etc.) -->
+  <table id="analiza-table" style="display:none;">
+    <thead id="thead-analiza">
+      <tr>
+        <th data-sort="file" class="sortable">Nume fișier</th>
+        <th data-sort="motiv" class="sortable">Motiv</th>
+        <th data-sort="sursa" class="sortable">Sursă</th>
+        <th>Acțiuni</th>
+        <th>Deschide</th>
+      </tr>
+    </thead>
+    <tbody id="analiza-body"></tbody>
+  </table>
+
+  <!-- Tabel separat pentru integritate (extensii greșite + duplicate) -->
+  <table id="integrity-table" style="display:none;">
+    <thead id="thead-integrity">
+      <tr>
+        <th>Nume fișier</th>
+        <th>Problemă</th>
+        <th>Sursă</th>
+        <th>Acțiune</th>
+        <th>Deschide</th>
+      </tr>
+    </thead>
+    <tbody id="integrity-body"></tbody>
+  </table>
+
+
+  <script>
+    console.log('📁 folderPath:', window.currentData?.folderPath);
+    console.log('🔍 electronAPI:', window.electronAPI?.correctFileExtension ? 'OK' : 'LIPSEȘTE!');
+
+    // Listener principal – diferențiază tipul de date primite
+    window.addEventListener('analiza-data', (e) => {
+      console.log('🔥 [ANALIZA-DATA] Primit:', e.detail);
+
+      const data = e.detail;
+
+      if (data.result?.corupteCount !== undefined) {
+        console.log('🚀 → populateTable (technical)');
+        document.getElementById('analiza-table').style.display = 'table';
+        document.getElementById('integrity-table').style.display = 'none';
+        populateTable(data);
+      } else if (data.result?.mismatches) {
+        console.log('📋 → populateIntegrityTable');
+        document.getElementById('integrity-table').style.display = 'table';
+        document.getElementById('analiza-table').style.display = 'none';
+        populateIntegrityTable(data);
+      }
+    });
+
+    // Backup listener pentru integritate
+    window.addEventListener('open-analiza-for-integrity', (e) => {
+      const data = e.detail;
+      console.log('[DEBUG open-analiza-for-integrity] Primit:', data);
+      document.getElementById('integrity-table').style.display = 'table';
+      document.getElementById('analiza-table').style.display = 'none';
+      populateIntegrityTable(data);
+    });
+
+// ────────────────────────────────────────────────
+// 1. Populare tabel ANALIZĂ TEHNICĂ (corupte / media / PDF / TIFF)
+// ────────────────────────────────────────────────
+function populateTable(data) {
+    try {
+window.currentData = {
+  folderName: data.folderName,
+  folderPath: data.folderPath || window.currentData?.folderPath || null
+};
+
+        const folderTitle = document.getElementById('folder-title');
+        if (folderTitle) folderTitle.textContent = `Analiză tehnică — ${data.folderName || 'folder necunoscut'}`;
+
+        const countEl = document.getElementById('suspecte-count');
+        const table = document.getElementById('analiza-table');
+        const tbody = document.getElementById('analiza-body');
+        if (!tbody) return;
+
+        const { corupteCount = 0, totalFiles = 0, corupteFiles = [], allFiles = [] } = data.result || {};
+
+        // Statistici
+        if (countEl) {
+            countEl.innerHTML = corupteCount === 0
+                ? `<span class="clean">Toate fișierele valide (${totalFiles})</span>`
+                : `<span class="suspecte">${corupteCount}/${totalFiles} fișiere cu probleme tehnice</span>`;
+        }
+
+        // Bară instrumente
+        let inventoryEl = document.getElementById('tools-inventory');
+        if (!inventoryEl && countEl) {
+            inventoryEl = document.createElement('div');
+            inventoryEl.id = 'tools-inventory';
+            inventoryEl.className = 'tools-inventory-bar';
+            countEl.parentNode.insertBefore(inventoryEl, countEl.nextSibling);
+        }
+const globalTools = [
+"Siegfried",
+"QPDF",
+"VeraPDF",
+"ImageMagick",
+"ExifTool",
+"FFmpeg",
+"FFprobe",
+"SHA256"
+];
+        if (inventoryEl) inventoryEl.innerHTML = `Ecosistem analiză: ${globalTools.map(t => `<span class="tool-tag">${t}</span>`).join('')}`;
+
+        if (table) table.style.display = 'table';
+
+        tbody.innerHTML = allFiles.map(file => {
+            const isCorupt = file.status === 'corupt';
+            let textDeAfisat = '';
+            let stilCuloare = "color:#4db8ff;";
+
+// MEDIA
+if (file.stats && file.stats.startsWith('[')) {
+
+    if (isCorupt) {
+        stilCuloare = "color:#ff4d4d;font-weight:bold;";
+        textDeAfisat = `❌ Media coruptă`;
+    } else {
+        stilCuloare = "color:#4caf50;font-weight:bold;";
+        textDeAfisat = `🎬 VALID ${file.stats}`;
+    }
+
+}
+// PDF
+else if (file.motiv && file.motiv.includes('PDF')) {
+
+    stilCuloare = isCorupt
+        ? "color:#ff4d4d;font-weight:bold;"
+        : "color:#4caf50;font-weight:bold;";
+
+    textDeAfisat = file.motiv;
+
+}
+// ImageMagick
+else if (file.stats && file.stats.includes('m:')) {
+
+    stilCuloare = "color:#4caf50;font-weight:bold;";
+    textDeAfisat = `✅  ${file.stats}`;
+
+}
+// DEFAULT
+else {
+
+    stilCuloare = isCorupt
+        ? "color:#ff4d4d;font-weight:bold;"
+        : "color:#4caf50;font-weight:bold;";
+
+    textDeAfisat = file.stats || file.motiv || '✅ OK';
+}
+
+            const realPath = file.fullPath || '';
+            const jsEscapedPath = realPath.replace(/\\/g, '\\\\'); // doar pentru inline JS (onclick)
+
+            return `
+                <tr>
+                    <td class="nume" title="${realPath}">${file.file}</td>
+                    <td class="motiv" style="${stilCuloare}; font-family: monospace;">${textDeAfisat}</td>
+                    <td class="sursa" style="font-size:0.85em;opacity:0.8;">${file.source || ''}</td>
+                    <td class="actiuni">
+                        <button class="btn-small btn-rename" onclick="enableInlineRename(this)" data-file="${file.file}" data-fullpath="${realPath}">Redenumește</button>
+                        ${isCorupt ? `<button class="btn-small btn-delete" data-file="${file.file}" data-fullpath="${realPath}">Șterge</button>` : ''}
+                    </td>
+                    <td><button class="open-btn" onclick="openFile('${jsEscapedPath}')">📂</button></td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error("Eroare critică în populateTable:", err);
+    }
+}
+    // ────────────────────────────────────────────────
+    // 2. Populare tabel INTEGRITATE (extensii + duplicate)
+    // ────────────────────────────────────────────────
+    function populateIntegrityTable(data) {
+      console.log('[DEBUG populateIntegrityTable] Date primite:', data);
+
+      window.currentData = {
+        folderName: data.folderName,
+        folderPath: data.folderPath,
+        mismatches: data.result?.mismatches || [],
+        duplicates: data.result?.duplicates || []
+      };
+      window.mismatches = data.result?.mismatches || [];
+
+      console.log('✅ window.mismatches:', window.mismatches.length, 'fișiere');
+      console.log('✅ window.currentData setat:', window.currentData.folderPath);
+
+      document.getElementById('folder-title').textContent =
+        `Verificare Extensii & Duplicate — ${data.folderName || 'folder necunoscut'}`;
+
+      const countEl = document.getElementById('suspecte-count');
+      const table = document.getElementById('integrity-table');
+      const tbody = document.getElementById('integrity-body');
+
+      const { totalFiles, mismatchCount = 0, duplicateCount = 0, mismatches = [], duplicates = [] } = data.result || {};
+
+      let statsText = `Găsite ${totalFiles} fișiere`;
+      if (mismatchCount > 0 || duplicateCount > 0) {
+        statsText += ` — <span style="color:#ef4444; font-weight:bold;">
+          ${mismatchCount} extensii greșite + ${duplicateCount} grupuri duplicate
+        </span>`;
+      } else {
+        statsText += ` — <span style="color:#10b981;">Nicio problemă detectată</span>`;
+      }
+      countEl.innerHTML = statsText;
+// Bară instrumente integritate
+let inventoryEl = document.getElementById('tools-inventory');
+
+if (!inventoryEl && countEl) {
+  inventoryEl = document.createElement('div');
+  inventoryEl.id = 'tools-inventory';
+  inventoryEl.className = 'tools-inventory-bar';
+  countEl.parentNode.insertBefore(inventoryEl, countEl.nextSibling);
+}
+
+const integrityTools = ["Siegfried", "ExifTool", "SHA256"];
+
+if (inventoryEl) {
+  inventoryEl.innerHTML =
+    `Ecosistem verificare: ${integrityTools.map(t => `<span class="tool-tag">${t}</span>`).join('')}`;
+}
+      table.style.display = 'table';
+
+      let rows = '';
+
+      // Mismatch extensii
+      if (mismatches.length > 0) {
+        mismatches.forEach(item => {
+          const realExtMatch = item.motiv.match(/detectat \.(\w+)/);
+          const realExt = realExtMatch ? realExtMatch[1] : 'unknown';
+
+          rows += `
+            <tr style="background: rgba(239,68,68,0.08);">
+              <td class="nume" title="${item.fullPath || ''}">${item.file}</td>
+              <td class="motiv" style="color:#ef4444;">${item.motiv || 'Extensie mismatch'}</td>
+              <td class="sursa">${item.source || 'Siegfried'}</td>
+              <td class="actiuni">
+                <button class="btn-corecteaza"
+                        data-file="${item.file}"
+                        data-real-ext="${realExt}"
+                        title="Corectează extensia">Corectează extensia</button>
+              </td>
+              <td>
+                <button class="open-btn" onclick="openFile('${(item.fullPath || '').replace(/\\/g,'\\\\')}')" title="Deschide locație">📂</button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      // Duplicate
+      if (duplicates.length > 0) {
+        duplicates.forEach(group => {
+          const fullHash = group.hash;
+
+          rows += `
+            <tr style="background: rgba(255, 200, 150, 0.2);">
+              <td colspan="4" style="font-weight:bold; color:white;">
+                Duplicate (${group.count} apariții) – SHA-256:
+                <code class="hash-copy"
+                      style="cursor:pointer; font-size:11px; color:#4CAF50; word-break:break-all; padding:2px 4px; border-radius:3px; background:#1e1e2f; transition:all 0.2s;"
+                      title="Click pentru a copia hash-ul în clipboard"
+                      data-hash="${fullHash}">${fullHash}</code>
+              </td>
+            </tr>
+          `;
+
+          group.files.forEach((file, idx) => {
+            const fullPath = group.fullPaths[idx];
+            rows += `
+              <tr style="background: rgba(255, 200, 150, 0.1);">
+                <td class="nume" title="${fullPath}">${file}</td>
+                <td class="motiv">🚨 hash identic</td>
+                <td class="sursa">SHA256 match</td>
+                <td class="actiuni">
+                  <button class="btn-sterge-fisier"
+                          data-file="${file}"
+                          data-fullpath="${fullPath}"
+                          data-hash="${fullHash}"
+                          title="Șterge acest duplicat">Șterge</button>
+                </td>
+                <td>
+                  <button class="open-btn" onclick="openFile('${fullPath.replace(/\\/g,'\\\\')}')" title="Deschide">📂</button>
+                </td>
+              </tr>
+            `;
+          });
+        });
+      }
+
+      if (rows === '') {
+        rows = '<tr><td colspan="5" style="text-align:center; color:#10b981;">Nicio problemă detectată</td></tr>';
+      }
+
+      tbody.innerHTML = rows;
+    }
+
+    function openFile(path) {
+      if (path && window.electronAPI?.openFileLocation) {
+        window.electronAPI.openFileLocation(path);
+      }
+    }
+  </script>
+
+  <!-- Sortare doar pentru tabelul analiza -->
+  <script>
+    let sortColumn = null;
+    let sortDirection = 'asc';
+
+    function sortTable() {
+      const tbody = document.getElementById('analiza-body');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      rows.sort((a, b) => {
+        let aVal, bVal;
+        if (sortColumn === 'file') {
+          aVal = a.cells[0].textContent.trim().toLowerCase();
+          bVal = b.cells[0].textContent.trim().toLowerCase();
+        } else if (sortColumn === 'motiv') {
+          aVal = a.cells[1].textContent.trim().toLowerCase();
+          bVal = b.cells[1].textContent.trim().toLowerCase();
+        } else if (sortColumn === 'sursa') {
+          aVal = a.cells[2].textContent.trim().toLowerCase();
+          bVal = b.cells[2].textContent.trim().toLowerCase();
+        }
+        if (aVal === bVal) return 0;
+        return sortDirection === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+      });
+
+      tbody.innerHTML = '';
+      rows.forEach(row => tbody.appendChild(row));
+    }
+
+    document.querySelectorAll('#thead-analiza th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const column = th.dataset.sort;
+        if (sortColumn === column) {
+          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortColumn = column;
+          sortDirection = 'asc';
+        }
+        document.querySelectorAll('#thead-analiza th.sortable').forEach(el => {
+          el.classList.remove('asc', 'desc');
+        });
+        th.classList.add(sortDirection);
+        sortTable();
+      });
+    });
+  </script>
+
+  <!-- Event delegation – TOATE butoanele -->
+  <script>
+document.addEventListener('click', async (e) => {
+  const btn = e.target;
+
+  // 1️⃣ COPIERE HASH
+  if (btn.classList.contains('hash-copy')) {
+    const hash = btn.dataset.hash;
+    if (!hash) return;
+    navigator.clipboard.writeText(hash).then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'Copiat! ✓';
+      btn.style.color = '#10b981';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.style.color = '#4CAF50';
+      }, 1500);
+    });
+    return;
+  }
+
+  // 2️⃣ ȘTERGERE DUPLICAT / CORUPT
+  if (btn.classList.contains('btn-sterge-fisier') || btn.classList.contains('btn-delete')) {
+    handleDeleteFile(btn);
+    return;
+  }
+
+  // 3️⃣ CORECTARE EXTENSIE
+  if (btn.classList.contains('btn-corecteaza')) {
+    handleCorrectExtension(btn);
+    return;
+  }
+
+});
+
+// ─── FUNCTIA GENERALĂ DE ȘTERGERE ───
+// ─── FUNCTIA DE ȘTERGERE ADAPTATĂ PENTRU DEDUPLICARE ȘI FIȘIERE CORUPTE ───
+// ─── FUNCTIA DE ȘTERGERE REPARATĂ PENTRU DEDUPLICARE ȘI FIȘIERE CORUPTE ───
+async function handleDeleteFile(btn) {
+  const fileName = btn.dataset.file;
+  const tr = btn.closest('tr');
+  const fullPath = btn.dataset.fullpath || tr?.querySelector('.nume')?.title;
+  const pachetId = (window.currentData?.folderName || 'UNKNOWN').replace(/(_VALIDAT)+$/, '');
+  const isDuplicate = btn.classList.contains('btn-sterge-fisier');
+
+  // Extragere dinamică a erorii direct din tabel pentru fișierele corupte
+  const textEroareInstrument = tr?.querySelector('.motiv')?.textContent || "Validare structurală eșuată.";
+
+  let hash = btn.dataset.hash || window.mismatches?.find(m => m.file === fileName)?.hash || null;
+  let keeperFullPath = "Identificabil prin Hash în baza de date";
+  let referenceInfo = "CORUPT";
+  
+  const motiv = isDuplicate
+    ? "Eliminare duplicat (SHA256 Collision)"
+    : "Eliminare fișier invalid tehnic / corupt";
+
+  if (isDuplicate) {
+    const altFileBtn = document.querySelector(
+      `.btn-sterge-fisier[data-hash="${hash}"]:not([data-fullpath="${fullPath.replace(/\\/g, '\\\\')}"])`
+    );
+    if (altFileBtn) {
+        referenceInfo = altFileBtn.dataset.file;
+        keeperFullPath = altFileBtn.dataset.fullpath;
+    } else {
+        referenceInfo = "Alt exemplar identic păstrat în sistem";
+    }
+  }
+
+  // Schimbăm textul de confirmare pentru a reflecta realitatea Recycle Bin
+  if (!confirm(`Confirmați mutarea la coșul de gunoi (Recycle Bin)?\nFișier: ${fileName}\nMotiv: ${motiv}\n\n* În locul lui va fi generat fișierul de audit: [${fileName}_Martor.txt]`)) return;
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    // 1. Determinare UUID și calcul securizat Hash ÎNAINTE de trimiterea la Martor
+    const obj = await window.electronAPI.getObjectByPath(fullPath);
+    let realUUID = null;
+    let realHash = hash; // Păstrăm hash-ul de deduplicare dacă există
+
+    if (obj) {
+      realUUID = obj.uuid;
+      if (!realHash) realHash = obj.hash_sha256;
+    } else {
+      realUUID = crypto.randomUUID();
+      if (!realHash) {
+        realHash = await window.electronAPI.getFileHashByPath(fullPath) || 'necunoscut';
+      }
+    }
+
+    // 2. Construirea dinamică a detaliilor textului martor cu datele REALE (Punctele 2.1 și 2.2)
+    const detaliiMartor = isDuplicate
+      ? `Deduplicare realizată cu succes. Conținut identic detectat prin amprentă digitală SHA-256. Exemplarul de referință reținut în pachet este: [${referenceInfo}] (Hash SHA256: ${realHash}).`
+      : `Fișierul a picat validarea tehnică.\nDetalii instrument control: ${textEroareInstrument}\nHash SHA-256 fișier eliminat: ${realHash}`;
+
+    if (!isDuplicate) {
+      keeperFullPath = `Nu este cazul (Fișier corupt eliminat definitiv din pachet) | Hash inițial: ${realHash}`;
+    }
+
+    // 3. Trimitem payload-ul complet către Main Process
+    const result = await window.electronAPI.deleteFileWithWitness({
+        filePath: fullPath,
+        fileName: fileName,
+        reason: motiv,
+        details: detaliiMartor,
+        keeperPath: keeperFullPath
+    });
+    
+    if (!result.success) throw new Error(result.error);
+
+    // Înregistrare eveniment PREMIS în DB
+    await window.electronAPI.addPremisEventForFile(
+      realUUID,
+      pachetId,
+      'deletion',
+      {
+        motiv,
+        referinta_audit: referenceInfo,
+        fisier_sters: fileName,
+        cale_sursa: fullPath,
+        hash_sha256: realHash,
+        note: isDuplicate 
+          ? `Fișier înlocuit cu martor de audit text. Originalul păstrat se află la: ${keeperFullPath}`
+          : `Fișier invalid tehnic înlocuit cu martor. Detalii diagnostic: ${textEroareInstrument}`,
+        agent: 'MaD-oais - Cleanup Module',
+        timestamp: new Date().toISOString()
+      },
+      'success',
+      'MaD-oais'
+    );
+
+    // Adăugare în raportul general de audit al pachetului
+    const timestamp = new Date().toLocaleString('ro-RO');
+    await window.electronAPI.addToAuditReport(
+      pachetId,
+      `Curățare pachet: [${fileName}] trimis la Recycle Bin. Generat fișier martor text. – ${timestamp}`
+    );
+
+    // Actualizare stări UI locale din pagină
+    if (window.currentData?.result) {
+      const { allFiles, corupteFiles } = window.currentData.result;
+      if (allFiles) window.currentData.result.allFiles = allFiles.filter(f => f.file !== fileName);
+      if (corupteFiles) window.currentData.result.corupteFiles = corupteFiles.filter(f => f.file !== fileName);
+      if (window.currentData.result.corupteCount) window.currentData.result.corupteCount -= 1;
+      if (window.currentData.result.totalFiles) window.currentData.result.totalFiles -= 1;
+      
+      // Apelăm funcția de update dacă există în UI-ul tău global
+      if (typeof updateTechnicalStatsUI === 'function') updateTechnicalStatsUI();
+    }
+
+    // Efect vizual de confirmare în tabel
+    btn.textContent = '✓ Martor';
+    btn.style.background = '#10b981';
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    if (tr) tr.remove();
+
+    // ─── PROPAGARE UNIVERSALĂ PRIN IPC (CURATĂ ȘI VERIFICATĂ) ───
+    try {
+        const identificator = fullPath || fileName;
+        console.log("📡 [IPC] Trimitere impuls ștergere către Explorer:", identificator);
+        
+        if (window.electronAPI && typeof window.electronAPI.send === 'function') {
+            window.electronAPI.send('request-tree-item-removal', identificator);
+        } else if (window.electronAPI && typeof window.electronAPI.removeItemFromTree === 'function') {
+            window.electronAPI.removeItemFromTree(identificator);
+        }
+    } catch (patchErr) {
+        console.error("Eroare la transmiterea semnalului către Tree:", patchErr);
+    }
+
+    console.log(`[CURĂȚARE OK] Martor complet creat pentru ${fileName}`);
+
+  } catch (err) {
+    console.error('❌ Eroare la ștergere fișier:', err);
+    btn.disabled = false;
+    btn.textContent = 'Eroare';
+    alert(err.message);
+  }
+}
+
+// ─── FUNCTIA PENTRU CORECTARE EXTENSIE ───
+// ─── FUNCTIA PENTRU CORECTARE EXTENSIE (CORECTATĂ PENTRU TREE LIVE) ───
+async function handleCorrectExtension(btn) {
+  const realExt = btn.dataset.realExt;
+  const fileName = btn.dataset.file;
+  const fullPath = btn.dataset.fullpath || btn.closest('tr')?.querySelector('.nume')?.title;
+
+  if (!realExt || !fullPath) {
+    alert("Eroare: Datele fișierului nu au fost găsite.");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    const result = await window.electronAPI.correctFileExtension(fullPath, fileName, realExt);
+
+    if (result && result.success) {
+      const pachetId = (window.currentData?.folderName || 'UNKNOWN').replace(/(_VALIDAT)+$/, '');
+      const timestampISO = new Date().toISOString();
+      const timestampRo = new Date().toLocaleString('ro-RO');
+
+      // 1. Înregistrare eveniment PREMIS în DB
+      await window.electronAPI.addPremisEventByPath(
+        result.newFullPath,
+        pachetId,
+        'metadata_modification',
+        {
+          motiv: "Corecție extensie mismatch",
+          fisier_vechi: fileName,
+          fisier_nou: result.newName,
+          extensie_detectata: realExt,
+          hash_sha256: btn.dataset.hash || result.hash,
+          timestamp: timestampISO
+        },
+        'success',
+        'MaD-oais'
+      );
+
+      // 2. Adăugare în raportul general de audit
+      const raportLine = `Corecție extensie: ${fileName} → ${result.newName} (.${realExt}) la data ${timestampRo}`;
+      await window.electronAPI.addToAuditReport(pachetId, raportLine);
+
+      // ❌ MODIFICAT: S-a eliminat await window.electronAPI.notifyChanges(); 
+      // pentru a preveni colapsul/dispariția Tree View-ului.
+
+      // 3. Update UI local pe rândul tabelului curent
+      const row = btn.closest('tr');
+      const nameCell = row.querySelector('.nume');
+      nameCell.textContent = result.newName;
+      nameCell.title = result.newFullPath;
+
+      const openBtn = row.querySelector('.open-btn');
+      if (openBtn) {
+        openBtn.setAttribute('onclick', `openFile('${result.newFullPath.replace(/\\/g,'\\\\')}')`);
+      }
+
+      row.cells[1].innerHTML = `<span style="color:#10b981">✅ .${realExt}</span>`;
+      
+      // Actualizăm dataset-ul pe TOATE butoanele din acest rând (ștergere, deschidere etc.)
+      row.querySelectorAll('button').forEach(b => {
+        b.dataset.file = result.newName;
+        b.dataset.fullpath = result.newFullPath;
+        b.dataset.hash = result.hash;
+      });
+
+      btn.textContent = 'Corectat';
+      btn.style.background = '#10b981';
+    }
+  } catch (err) {
+    console.error('❌ Eroare la corectare extensie:', err);
+    alert("❌ Eroare: " + (err.message || err));
+    btn.textContent = 'Corectează';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ───────────────────────────────────────
+// Actualizare UI pentru statistici tehnice
+// ───────────────────────────────────────
+function updateTechnicalStatsUI() {
+  const countEl = document.getElementById('suspecte-count');
+  if (!countEl || !window.currentData?.result) return;
+
+  const { corupteCount = 0, totalFiles = 0 } = window.currentData.result;
+
+  countEl.innerHTML = corupteCount === 0
+    ? `<span class="clean">Toate fișierele valide (${totalFiles})</span>`
+    : `<span class="suspecte">${corupteCount}/${totalFiles} fișiere cu probleme tehnice</span>`;
+}
+  </script>
+   <script>
+async function enableInlineRename(btn) {
+  const row = btn.closest('tr');
+  const nameCell = row.querySelector('.nume');
+  const oldName = btn.dataset.file;
+  const fullPath = btn.dataset.fullpath;
+
+  if (nameCell.querySelector('input')) return;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = oldName;
+  input.style.cssText = `width: 100%; padding: 4px; background: #2d2d44; color: #fff; border: 1px solid #10b981; border-radius: 4px; outline: none;`;
+
+  nameCell.textContent = '';
+  nameCell.appendChild(input);
+  input.focus();
+  input.select();
+
+  let isProcessing = false;
+
+  const saveRename = async () => {
+    if (isProcessing) return;
+    const newName = input.value.trim();
+    if (!newName || newName === oldName) {
+        nameCell.textContent = oldName;
+        return;
+    }
+    isProcessing = true;
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+        let realHash = btn.dataset.hash || null;
+        if (!realHash && fullPath) {
+            realHash = await window.electronAPI.getFileHashByPath(fullPath) || 'necunoscut (calcul eșuat)';
+        }
+
+        // Apelăm redenumirea nativă. Main.js va trimite și semnalul către Tree!
+        const result = await window.electronAPI.renameFile(fullPath, newName);
+
+        if (result && result.success) {
+            const pachetId = (window.currentData?.folderName || 'UNKNOWN').replace(/(_VALIDAT)+$/, '');
+            const timestampISO = new Date().toISOString();
+            const timestampRo = new Date().toLocaleString('ro-RO');
+
+            // 1. Eveniment PREMIS
+            await window.electronAPI.addPremisEventByPath(
+                result.newFullPath,
+                pachetId,
+                'metadata_modification',
+                {
+                    motiv: "Redenumire manuală",
+                    fisier_vechi: oldName,
+                    fisier_nou: newName,
+                    hash_sha256: realHash,
+                    timestamp: timestampISO
+                },
+                'success',
+                'User Interface Action'
+            );
+
+            // 2. Audit Report log
+            const raportLine = `Redenumire: ${oldName} → ${newName} la data ${timestampRo}`;
+            await window.electronAPI.addToAuditReport(pachetId, raportLine);
+
+            // 3. Update UI local pe rândul curent al tabelului
+            nameCell.textContent = newName;
+            nameCell.title = result.newFullPath;
+
+            const openBtn = row.querySelector('.open-btn, button[onclick*="openFile"]');
+            if (openBtn) {
+                const escapedPath = result.newFullPath.replace(/\\/g, '\\\\');
+                openBtn.setAttribute('onclick', `openFile('${escapedPath}')`);
+            }
+
+            row.querySelectorAll('button').forEach(b => {
+                b.dataset.file = newName;
+                b.dataset.fullpath = result.newFullPath;
+            });
+
+            btn.textContent = 'OK ✅';
+            btn.style.background = '#10b981';
+        }
+
+    } catch (err) {
+        console.error('Eroare la redenumire:', err);
+        alert("Eroare la redenumire: " + (err.message || err));
+        nameCell.textContent = oldName;
+    } finally {
+        isProcessing = false;
+        btn.disabled = false;
+        if (btn.textContent === '...') btn.textContent = 'Redenumește';
+    }
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); nameCell.textContent = oldName; }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => { if (nameCell.contains(input)) saveRename(); }, 150);
+  });
+}
+ </script>
+</body>
+</html>

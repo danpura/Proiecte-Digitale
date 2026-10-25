@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaD Provenance Audit — OAIS/PREMIS</title>
+    <style>
+        :root {
+            --bg-deep: #0a0e14;
+            --bg-panel: #0f1419;
+            --bg-elevated: #151b23;
+            --bg-hover: #1a2332;
+            --bg-active: #1e2a3a;
+            --border: #243044;
+            --border-strong: #2d3f55;
+            --text: #e6edf3;
+            --text-muted: #8b9cb3;
+            --text-dim: #5c6b7f;
+            --accent: #3b82f6;
+            --accent-dim: #1e40af;
+            --accent-glow: rgba(59, 130, 246, 0.25);
+            --success: #22c55e;
+            --success-bg: rgba(34, 197, 94, 0.12);
+            --error: #ef4444;
+            --error-bg: rgba(239, 68, 68, 0.15);
+            --warn: #f59e0b;
+            --warn-bg: rgba(245, 158, 11, 0.12);
+            --skip: #64748b;
+            --skip-bg: rgba(100, 116, 139, 0.15);
+            --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+            --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --radius: 2px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg-deep);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand h1 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--text);
+        }
+
+        .header-brand .badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 8px;
+            background: var(--accent-dim);
+            color: #93c5fd;
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--bg-elevated);
+            color: var(--text);
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            font-family: var(--sans);
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-color: transparent;
+            color: var(--text-muted);
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        input[type="file"] { display: none; }
+
+        /* ── Package meta strip ── */
+        .meta-strip {
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px 24px;
+            font-size: 13px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-item .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .meta-item .value {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .meta-item .value.hash {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── Alert banner ── */
+        .alert-banner {
+            display: none;
+            background: var(--error-bg);
+            border-bottom: 1px solid var(--error);
+            padding: 10px 20px;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .alert-banner.visible { display: flex; }
+        .alert-banner:hover { background: rgba(239, 68, 68, 0.22); }
+
+        .alert-banner .icon { font-size: 16px; }
+        .alert-banner strong { color: #fca5a5; }
+        .alert-banner span { color: var(--text-muted); margin-left: 4px; }
+
+        /* ── Layout ── */
+        .layout {
+            display: flex;
+            height: calc(100vh - 140px);
+            min-height: 480px;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-section {
+            padding: 12px 16px 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .nav-item {
+            padding: 9px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 3px solid transparent;
+            color: var(--text-muted);
+            transition: all 0.12s;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: var(--bg-active);
+            border-left-color: var(--accent);
+            color: #fff;
+            font-weight: 500;
+            box-shadow: inset 0 0 0 1px var(--accent-glow);
+        }
+
+        .nav-item .count {
+            margin-left: auto;
+            font-size: 11px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            padding: 1px 7px;
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            font-family: var(--mono);
+        }
+
+        .nav-item.active .count {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: #93c5fd;
+        }
+
+        .filter-group {
+            padding: 8px 16px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .filter-chip {
+            padding: 4px 10px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.12s;
+            font-family: var(--sans);
+        }
+
+        .filter-chip:hover { border-color: var(--accent); color: var(--text); }
+        .filter-chip.active {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: #93c5fd;
+            font-weight: 500;
+        }
+
+        .search-wrap {
+            padding: 0 16px 12px;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 7px 10px;
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            font-family: var(--sans);
+        }
+
+        .search-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .search-wrap input::placeholder { color: var(--text-dim); }
+
+        /* ── Main ── */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg-deep);
+            padding: 20px 24px;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active { display: block; }
+
+        /* ── Objects table ── */
+        .table-wrap {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--bg-panel);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            background: var(--bg-elevated);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        tbody tr:hover { background: var(--bg-hover); }
+
+        tbody tr.selected {
+            background: var(--bg-active);
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+
+        tbody tr.has-error {
+            background: rgba(239, 68, 68, 0.06);
+        }
+
+        tbody tr.has-error:hover {
+            background: rgba(239, 68, 68, 0.12);
+        }
+
+        tbody tr.has-error.selected {
+            background: rgba(239, 68, 68, 0.18);
+            box-shadow: inset 3px 0 0 var(--error);
+        }
+
+        .file-name {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .mime-tag, .puid-tag {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Status badges */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: var(--radius);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border: 1px solid transparent;
+        }
+
+        .status-ok {
+            background: var(--success-bg);
+            color: var(--success);
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+
+        .status-error {
+            background: var(--error-bg);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .status-skip {
+            background: var(--skip-bg);
+            color: #94a3b8;
+            border-color: rgba(100, 116, 139, 0.35);
+        }
+
+        .status-null {
+            background: var(--bg-elevated);
+            color: var(--text-dim);
+            border-color: var(--border);
+        }
+
+        /* ── Object detail ── */
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .detail-title {
+            font-size: 18px;
+            font-weight: 600;
+            font-family: var(--mono);
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .detail-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+        }
+
+        .detail-card .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .detail-card .value {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .detail-card .value.hash-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn {
+            padding: 2px 8px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            border-radius: var(--radius);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Timeline ── */
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 4px;
+            bottom: 4px;
+            width: 2px;
+            background: var(--border-strong);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .timeline-item:last-child { margin-bottom: 0; }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: 16px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--border-strong);
+            background: var(--bg-deep);
+        }
+
+        .timeline-item.success::before {
+            border-color: var(--success);
+            background: var(--success);
+            box-shadow: 0 0 0 3px var(--success-bg);
+        }
+
+        .timeline-item.error::before {
+            border-color: var(--error);
+            background: var(--error);
+            box-shadow: 0 0 0 3px var(--error-bg);
+        }
+
+        .timeline-item .evt-type {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .timeline-item.error .evt-type { color: #f87171; }
+
+        .timeline-item .evt-details {
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 6px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .timeline-item .evt-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--text-dim);
+            font-family: var(--mono);
+        }
+
+        .timeline-item .evt-agent {
+            color: var(--text-muted);
+        }
+
+        /* ── Raw JSON ── */
+        .raw-json {
+            font-family: var(--mono);
+            font-size: 12px;
+            line-height: 1.7;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: var(--text-muted);
+            max-height: calc(100vh - 220px);
+        }
+
+        .json-key { color: #7dd3fc; }
+        .json-str { color: #86efac; }
+        .json-num { color: #fcd34d; }
+        .json-bool { color: #f9a8d4; }
+        .json-null { color: var(--text-dim); font-style: italic; }
+
+        /* ── Empty / loading ── */
+        .empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-dim);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty h2 {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin: 12px 0 6px;
+            font-weight: 500;
+        }
+
+        .empty p { font-size: 13px; max-width: 360px; }
+
+        /* ── Section titles ── */
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-strong);
+            color: var(--text);
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.25s;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            border-color: var(--error);
+            background: #1a1010;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3d5169; }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; height: auto; }
+            .sidebar {
+                width: 100%;
+                min-width: unset;
+                max-height: 220px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            .main { min-height: 500px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-brand">
+            <h1>MaD Provenance Audit</h1>
+            <span class="badge">OAIS / PREMIS</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Încarcă JSON</button>
+            <input type="file" id="fileInput" accept=".json">
+            <button class="btn" onclick="exportJSON()" id="btnExport" disabled>Export</button>
+            <button class="btn btn-ghost" onclick="clearAll()" id="btnClear" disabled>Curăță</button>
+        </div>
+    </header>
+
+    <div class="meta-strip" id="metaStrip" style="display:none;">
+        <div class="meta-item">
+            <span class="label">ID Pachet</span>
+            <span class="value" id="mId">—</span>
+        </div>
+        <div class="meta-item">
+            <span class="label">Sursă</span>
+            <span class="value" id="mSursa">—</span>
+        </div>
+        <div class="meta-item">
+            <span class="label">Hash pachet (SHA-256)</span>
+            <span class="value hash" id="mHash">—</span>
+        </div>
+        <div class="meta-item">
+            <span class="label">Ingestie</span>
+            <span class="value" id="mIngest">—</span>
+        </div>
+        <div class="meta-item">
+            <span class="label">Source App</span>
+            <span class="value" id="mApp">—</span>
+        </div>
+        <div class="meta-item">
+            <span class="label">Obiecte</span>
+            <span class="value" id="mCount">—</span>
+        </div>
+    </div>
+
+    <div class="alert-banner" id="alertBanner" onclick="showErrorsOnly()">
+        <span class="icon">⚠</span>
+        <div>
+            <strong id="alertText">0 obiecte cu probleme</strong>
+            <span>— click pentru filtrare</span>
+        </div>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-section">Vizualizare</div>
+            <div class="nav-item active" data-view="objects" onclick="switchView('objects')">
+                <span>Obiecte</span>
+                <span class="count" id="navObjCount">0</span>
+            </div>
+            <div class="nav-item" data-view="events" onclick="switchView('events')">
+                <span>Evenimente pachet</span>
+                <span class="count" id="navEvtCount">0</span>
+            </div>
+            <div class="nav-item" data-view="detail" onclick="switchView('detail')" id="navDetail" style="display:none;">
+                <span>Detaliu obiect</span>
+            </div>
+            <div class="nav-item" data-view="raw" onclick="switchView('raw')">
+                <span>Raw JSON</span>
+            </div>
+
+            <div class="sidebar-section" style="margin-top:12px;">Filtre obiecte</div>
+            <div class="filter-group" id="filterGroup">
+                <button class="filter-chip active" data-filter="all" onclick="setFilter('all')">Toate</button>
+                <button class="filter-chip" data-filter="error" onclick="setFilter('error')">Erori</button>
+                <button class="filter-chip" data-filter="image" onclick="setFilter('image')">Imagini</button>
+                <button class="filter-chip" data-filter="pdf" onclick="setFilter('pdf')">PDF</button>
+                <button class="filter-chip" data-filter="skip" onclick="setFilter('skip')">SKIP</button>
+            </div>
+
+            <div class="search-wrap">
+                <input type="text" id="searchInput" placeholder="Caută nume, hash, uuid…" oninput="applyFilters()">
+            </div>
+        </aside>
+
+        <main class="main">
+            <!-- Empty state -->
+            <div class="empty" id="emptyState">
+                <div style="font-size:40px;opacity:0.4;">📦</div>
+                <h2>Niciun pachet încărcat</h2>
+                <p>Încarcă un fișier JSON de proveniență OAIS/PREMIS pentru a începe auditul.</p>
+            </div>
+
+            <!-- Objects panel -->
+            <div class="panel" id="panel-objects">
+                <div class="section-title">Obiecte digitale</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Nume fișier</th>
+                                <th>Mimetype</th>
+                                <th>PUID</th>
+                                <th>PDF/A</th>
+                                <th>Fixity</th>
+                            </tr>
+                        </thead>
+                        <tbody id="objectsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Package events panel -->
+            <div class="panel" id="panel-events">
+                <div class="section-title">Cronologie evenimente pachet</div>
+                <div class="timeline" id="packageTimeline"></div>
+            </div>
+
+            <!-- Object detail panel -->
+            <div class="panel" id="panel-detail">
+                <div class="detail-header">
+                    <div>
+                        <div class="section-title" style="border:none;margin:0;padding:0;">Obiect selectat</div>
+                        <div class="detail-title" id="detailName">—</div>
+                    </div>
+                    <button class="btn" onclick="switchView('objects')">← Înapoi la listă</button>
+                </div>
+                <div class="detail-grid" id="detailGrid"></div>
+                <div class="section-title">Evenimente PREMIS</div>
+                <div class="timeline" id="objectTimeline"></div>
+            </div>
+
+            <!-- Raw JSON panel -->
+            <div class="panel" id="panel-raw">
+                <div class="section-title">JSON brut</div>
+                <div class="raw-json" id="rawJson"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ── Sample data (from provided file) ──
+        const SAMPLE = {
+            "sourceApp": "MaD-oais",
+            "transferDate": "2026-09-04T16:03:14.461Z",
+            "mergedFromObjects": 4,
+            "sip": {
+                "id_pachet": "BU-FD-00001-2026.09.04",
+                "sursa": "ANR BUCURESTI — FOND DE TEN",
+                "hash_pachet_real": "68f89413209d0b2dccbad5add94188725eaab977ab609c220b6ad626dfb7e4ef",
+                "algoritm_hash": "SHA-256",
+                "data_ingestie": "2026-09-04 11:16:43",
+                "utilizator_ingestie": "puribus",
+                "status_antivirus": null,
+                "uuid_pachet": "c2b0a711-1b01-436a-8c63-86ab333bf526"
+            },
+            "pachetLevelEvents": [
+                {
+                    "tip_eveniment": "ingestion",
+                    "detalii": "\"Folder încărcat și analizat în MaD-oais\"",
+                    "rezultat": "success",
+                    "agent": "MaD-oais - user: puribus @ Lenovo-T470",
+                    "data_eveniment": "2026-09-04T11:16:49.635Z",
+                    "outcome_information": "permanent record preserved"
+                },
+                {
+                    "tip_eveniment": "ingestion",
+                    "detalii": "\"Folder încărcat și analizat în MaD-oais\"",
+                    "rezultat": "success",
+                    "agent": "MaD-oais - user: puribus @ Lenovo-T470",
+                    "data_eveniment": "2026-09-04T11:34:42.089Z",
+                    "outcome_information": "permanent record preserved"
+                },
+                {
+                    "tip_eveniment": "ingestion",
+                    "detalii": "\"Folder încărcat și analizat în MaD-oais\"",
+                    "rezultat": "success",
+                    "agent": "MaD-oais - user: puribus @ Lenovo-T470",
+                    "data_eveniment": "2026-09-04T15:39:31.571Z",
+                    "outcome_information": "permanent record preserved"
+                },
+                {
+                    "tip_eveniment": "ingestion",
+                    "detalii": "\"Folder încărcat și analizat în MaD-oais\"",
+                    "rezultat": "success",
+                    "agent": "MaD-oais - user: puribus @ Lenovo-T470",
+                    "data_eveniment": "2026-09-04T15:59:21.756Z",
+                    "outcome_information": "permanent record preserved"
+                }
+            ],
+            "obiecte": [
+                {
+                    "nume_fisier": "BU-FD-00001-A-1-001_0001.jpg",
+                    "uuid": "3566d5a0-409d-4a9c-b461-217e51f7e7b5",
+                    "hash_sha256": "66966bd235b15b3d3d8759ceecb15ec521dd54296b6f98c9a8dbdcc2f2640ed3",
+                    "mimetype": "image/jpeg",
+                    "puid": "fmt/43",
+                    "pdfa_status": "SKIP",
+                    "technical_validation_status": null,
+                    "premisEvents": [
+                        {
+                            "tip_eveniment": "format_identification",
+                            "detalii": "{\n  \"mime\": \"image/jpeg\",\n  \"puid\": \"fmt/43\",\n  \"formatName\": \"JPEG File Interchange Format\",\n  \"version\": \"1.01\"\n}",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 + Siegfried v1.11.4\nC:\\Users\\puribus\\Documents\\Mad-suite\\02_MaD-Ingestor-OAIS_3.2.4\\tools\\siegfried\\default.sig (2026-06-06T12:42:53+10:00)\nidentifiers: \n  - pronom: DROID_SignatureFile_V122.xml; container-signature-20260119.xml (DROID signatures) (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:47.638Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "metadata_extracted",
+                            "detalii": "Extracție completă metadate tehnice cu ExifTool",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:47.638Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "ingestion_fixity_check",
+                            "detalii": "Hash match OK: 66966bd235b15b3d3d8759ceecb15ec521dd54296b6f98c9a8dbdcc2f2640ed3",
+                            "rezultat": "success",
+                            "agent": "MaD-oais",
+                            "data_eveniment": "2026-09-04T11:16:47.638Z",
+                            "outcome_information": null
+                        }
+                    ]
+                },
+                {
+                    "nume_fisier": "BU-FD-00001-A-1-001_0002.jpg",
+                    "uuid": "4473c9e4-809f-4619-9576-2aeabafc1758",
+                    "hash_sha256": "897cd8dc7c72f71f7e9eb9b99e56be1c8455582139f1a085686399d27169898e",
+                    "mimetype": "image/jpeg",
+                    "puid": "fmt/43",
+                    "pdfa_status": "SKIP",
+                    "technical_validation_status": null,
+                    "premisEvents": [
+                        {
+                            "tip_eveniment": "format_identification",
+                            "detalii": "{\n  \"mime\": \"image/jpeg\",\n  \"puid\": \"fmt/43\",\n  \"formatName\": \"JPEG File Interchange Format\",\n  \"version\": \"1.01\"\n}",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 + Siegfried v1.11.4\nC:\\Users\\puribus\\Documents\\Mad-suite\\02_MaD-Ingestor-OAIS_3.2.4\\tools\\siegfried\\default.sig (2026-06-06T12:42:53+10:00)\nidentifiers: \n  - pronom: DROID_SignatureFile_V122.xml; container-signature-20260119.xml (DROID signatures) (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:47.617Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "metadata_extracted",
+                            "detalii": "Extracție completă metadate tehnice cu ExifTool",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:47.617Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "ingestion_fixity_check",
+                            "detalii": "Hash match OK: 897cd8dc7c72f71f7e9eb9b99e56be1c8455582139f1a085686399d27169898e",
+                            "rezultat": "success",
+                            "agent": "MaD-oais",
+                            "data_eveniment": "2026-09-04T11:16:47.617Z",
+                            "outcome_information": null
+                        }
+                    ]
+                },
+                {
+                    "nume_fisier": "BU-FD-00001-A-1-001_0003.jpg",
+                    "uuid": "37de6f70-080f-4521-9e2f-7e158c60fbf7",
+                    "hash_sha256": "05092adecaa408bf32b866568c50fb00ed7124e0c7665a773f8a3e68027a8843",
+                    "mimetype": "image/jpeg",
+                    "puid": "fmt/43",
+                    "pdfa_status": "SKIP",
+                    "technical_validation_status": null,
+                    "premisEvents": [
+                        {
+                            "tip_eveniment": "format_identification",
+                            "detalii": "{\n  \"mime\": \"image/jpeg\",\n  \"puid\": \"fmt/43\",\n  \"formatName\": \"JPEG File Interchange Format\",\n  \"version\": \"1.01\"\n}",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 + Siegfried v1.11.4\nC:\\Users\\puribus\\Documents\\Mad-suite\\02_MaD-Ingestor-OAIS_3.2.4\\tools\\siegfried\\default.sig (2026-06-06T12:42:53+10:00)\nidentifiers: \n  - pronom: DROID_SignatureFile_V122.xml; container-signature-20260119.xml (DROID signatures) (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:47.118Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "metadata_extracted",
+                            "detalii": "Extracție completă metadate tehnice cu ExifTool",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:47.118Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "ingestion_fixity_check",
+                            "detalii": "Hash match OK: 05092adecaa408bf32b866568c50fb00ed7124e0c7665a773f8a3e68027a8843",
+                            "rezultat": "success",
+                            "agent": "MaD-oais",
+                            "data_eveniment": "2026-09-04T11:16:47.118Z",
+                            "outcome_information": null
+                        }
+                    ]
+                },
+                {
+                    "nume_fisier": "BU-FD-00001-A-2-001_0003.pdf",
+                    "uuid": "8182a2d4-bd02-48e1-8d31-808ca78d871b",
+                    "hash_sha256": "5ca9a8a3b58e7b243cc46c384389129b57ef164fd6da1e7ae39b20fef4e3a184",
+                    "mimetype": "application/pdf",
+                    "puid": "UNKNOWN",
+                    "pdfa_status": "ERROR",
+                    "technical_validation_status": null,
+                    "premisEvents": [
+                        {
+                            "tip_eveniment": "pdfa_validation",
+                            "detalii": "{\"isPdf\":true,\"status\":\"ERROR\",\"level\":\"N/A\",\"tool\":\"VeraPDF\",\"timestamp\":\"2026-09-04T11:16:49.167Z\"}",
+                            "rezultat": "ERROR",
+                            "agent": "VeraPDF (MaD-oais)",
+                            "data_eveniment": "2026-09-04T11:16:49.167Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "format_identification",
+                            "detalii": "{\n  \"mime\": \"application/pdf\",\n  \"puid\": \"UNKNOWN\",\n  \"formatName\": \"unknown\",\n  \"version\": \"necunoscută\"\n}",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 + Siegfried v1.11.4\nC:\\Users\\puribus\\Documents\\Mad-suite\\02_MaD-Ingestor-OAIS_3.2.4\\tools\\siegfried\\default.sig (2026-06-06T12:42:53+10:00)\nidentifiers: \n  - pronom: DROID_SignatureFile_V122.xml; container-signature-20260119.xml (DROID signatures) (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:49.167Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "metadata_extracted",
+                            "detalii": "Extracție completă metadate tehnice cu ExifTool",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:49.167Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "ingestion_fixity_check",
+                            "detalii": "Hash match OK: 5ca9a8a3b58e7b243cc46c384389129b57ef164fd6da1e7ae39b20fef4e3a184",
+                            "rezultat": "success",
+                            "agent": "MaD-oais",
+                            "data_eveniment": "2026-09-04T11:16:49.168Z",
+                            "outcome_information": null
+                        }
+                    ]
+                },
+                {
+                    "nume_fisier": "BU-FD-00001-A-2-001_0003.tiff",
+                    "uuid": "a026a31c-2785-4956-83d0-94b83bf4a7d9",
+                    "hash_sha256": "6e52968940bd4e35f88cb30fc16f24066da6871d5899be741e6251147f52ef3d",
+                    "mimetype": "image/tiff",
+                    "puid": "fmt/353",
+                    "pdfa_status": "SKIP",
+                    "technical_validation_status": null,
+                    "premisEvents": [
+                        {
+                            "tip_eveniment": "format_identification",
+                            "detalii": "{\n  \"mime\": \"image/tiff\",\n  \"puid\": \"fmt/353\",\n  \"formatName\": \"Tagged Image File Format\",\n  \"version\": \"necunoscută\"\n}",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 + Siegfried v1.11.4\nC:\\Users\\puribus\\Documents\\Mad-suite\\02_MaD-Ingestor-OAIS_3.2.4\\tools\\siegfried\\default.sig (2026-06-06T12:42:53+10:00)\nidentifiers: \n  - pronom: DROID_SignatureFile_V122.xml; container-signature-20260119.xml (DROID signatures) (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:48.064Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "metadata_extracted",
+                            "detalii": "Extracție completă metadate tehnice cu ExifTool",
+                            "rezultat": "success",
+                            "agent": "ExifTool v13.43 (MaD-oais, utilizator: puribus)",
+                            "data_eveniment": "2026-09-04T11:16:48.064Z",
+                            "outcome_information": null
+                        },
+                        {
+                            "tip_eveniment": "ingestion_fixity_check",
+                            "detalii": "Hash match OK: 6e52968940bd4e35f88cb30fc16f24066da6871d5899be741e6251147f52ef3d",
+                            "rezultat": "success",
+                            "agent": "MaD-oais",
+                            "data_eveniment": "2026-09-04T11:16:48.064Z",
+                            "outcome_information": null
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // ── State ──
+        let data = null;
+        let currentFilter = 'all';
+        let selectedIdx = -1;
+        let searchTerm = '';
+
+        // ── Helpers ──
+        function toast(msg, isError = false) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast show' + (isError ? ' error' : '');
+            clearTimeout(el._t);
+            el._t = setTimeout(() => el.classList.remove('show'), 2800);
+        }
+
+        function fmtDate(iso) {
+            if (!iso) return '—';
+            try {
+                const d = new Date(iso);
+                return d.toLocaleString('ro-RO', { dateStyle: 'short', timeStyle: 'medium' });
+            } catch { return iso; }
+        }
+
+        function statusBadge(val, type) {
+            if (val === null || val === undefined || val === '') {
+                return '<span class="status status-null">—</span>';
+            }
+            const v = String(val).toUpperCase();
+            if (v === 'ERROR' || v === 'FAIL' || v === 'FAILED') {
+                return `<span class="status status-error">● ${v}</span>`;
+            }
+            if (v === 'SKIP' || v === 'SKIPPED') {
+                return `<span class="status status-skip">○ ${v}</span>`;
+            }
+            if (v === 'SUCCESS' || v === 'OK' || v === 'PASS' || v === 'PASSED') {
+                return `<span class="status status-ok">● OK</span>`;
+            }
+            return `<span class="status status-null">${escapeHtml(String(val))}</span>`;
+        }
+
+        function getFixityStatus(obj) {
+            const events = obj.premisEvents || [];
+            const fixity = events.find(e => (e.tip_eveniment || '').toLowerCase().includes('fixity'));
+            if (!fixity) return { ok: null, detail: null };
+            const ok = (fixity.rezultat || '').toLowerCase() === 'success';
+            return { ok, detail: fixity.detalii || null };
+        }
+
+        function hasError(obj) {
+            if ((obj.pdfa_status || '').toUpperCase() === 'ERROR') return true;
+            if ((obj.puid || '').toUpperCase() === 'UNKNOWN') return true;
+            const events = obj.premisEvents || [];
+            return events.some(e => {
+                const r = (e.rezultat || '').toUpperCase();
+                return r === 'ERROR' || r === 'FAIL' || r === 'FAILED';
+            });
+        }
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
+            return json
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+                    let cls = 'json-num';
+                    if (/^"/.test(match)) {
+                        cls = /:$/.test(match) ? 'json-key' : 'json-str';
+                    } else if (/true|false/.test(match)) cls = 'json-bool';
+                    else if (/null/.test(match)) cls = 'json-null';
+                    return `<span class="${cls}">${match}</span>`;
+                });
+        }
+
+        // ── Load / render ──
+        function loadData(obj, filename) {
+            data = obj;
+            selectedIdx = -1;
+            currentFilter = 'all';
+            searchTerm = '';
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+
+            // Meta strip
+            document.getElementById('metaStrip').style.display = 'grid';
+            document.getElementById('mId').textContent = obj.sip?.id_pachet || '—';
+            document.getElementById('mSursa').textContent = obj.sip?.sursa || '—';
+            document.getElementById('mHash').textContent = obj.sip?.hash_pachet_real || '—';
+            document.getElementById('mIngest').textContent = `${obj.sip?.utilizator_ingestie || '—'} · ${obj.sip?.data_ingestie || '—'}`;
+            document.getElementById('mApp').textContent = obj.sourceApp || '—';
+            document.getElementById('mCount').textContent = (obj.obiecte || []).length;
+
+            // Counts
+            const objs = obj.obiecte || [];
+            const evts = obj.pachetLevelEvents || [];
+            document.getElementById('navObjCount').textContent = objs.length;
+            document.getElementById('navEvtCount').textContent = evts.length;
+
+            // Alert
+            const errCount = objs.filter(hasError).length;
+            const alert = document.getElementById('alertBanner');
+            if (errCount > 0) {
+                alert.classList.add('visible');
+                document.getElementById('alertText').textContent =
+                    errCount === 1 ? '1 obiect cu probleme' : `${errCount} obiecte cu probleme`;
+            } else {
+                alert.classList.remove('visible');
+            }
+
+            // Enable buttons
+            document.getElementById('btnExport').disabled = false;
+            document.getElementById('btnClear').disabled = false;
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('navDetail').style.display = 'none';
+
+            renderObjects();
+            renderPackageEvents();
+            document.getElementById('rawJson').innerHTML = syntaxHighlight(obj);
+            switchView('objects');
+            toast(`Pachet încărcat: ${filename || obj.sip?.id_pachet || 'JSON'}`);
+        }
+
+        function renderObjects() {
+            const tbody = document.getElementById('objectsBody');
+            const objs = data?.obiecte || [];
+            const filtered = objs
+                .map((o, i) => ({ o, i }))
+                .filter(({ o }) => {
+                    if (currentFilter === 'error' && !hasError(o)) return false;
+                    if (currentFilter === 'image' && !(o.mimetype || '').startsWith('image/')) return false;
+                    if (currentFilter === 'pdf' && !(o.mimetype || '').includes('pdf')) return false;
+                    if (currentFilter === 'skip' && (o.pdfa_status || '').toUpperCase() !== 'SKIP') return false;
+                    if (searchTerm) {
+                        const t = searchTerm.toLowerCase();
+                        const hay = [
+                            o.nume_fisier, o.uuid, o.hash_sha256, o.mimetype, o.puid, o.pdfa_status
+                        ].join(' ').toLowerCase();
+                        if (!hay.includes(t)) return false;
+                    }
+                    return true;
+                });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px;">Niciun obiect care să corespundă filtrului</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(({ o, i }) => {
+                const fix = getFixityStatus(o);
+                const err = hasError(o);
+                const sel = i === selectedIdx ? 'selected' : '';
+                const errCls = err ? 'has-error' : '';
+                return `
+                    <tr class="${sel} ${errCls}" onclick="selectObject(${i})">
+                        <td>${err ? '<span class="status status-error">● ERR</span>' : '<span class="status status-ok">● OK</span>'}</td>
+                        <td><span class="file-name">${escapeHtml(o.nume_fisier || `obiect-${i+1}`)}</span></td>
+                        <td><span class="mime-tag">${escapeHtml(o.mimetype || '—')}</span></td>
+                        <td><span class="puid-tag">${escapeHtml(o.puid || '—')}</span></td>
+                        <td>${statusBadge(o.pdfa_status)}</td>
+                        <td>${fix.ok === true ? statusBadge('OK') : fix.ok === false ? statusBadge('ERROR') : statusBadge(null)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPackageEvents() {
+            const container = document.getElementById('packageTimeline');
+            const events = data?.pachetLevelEvents || [];
+            if (!events.length) {
+                container.innerHTML = '<p style="color:var(--text-dim);font-size:13px;">Niciun eveniment la nivel de pachet.</p>';
+                return;
+            }
+            // Sort by date ascending
+            const sorted = [...events].sort((a, b) => new Date(a.data_eveniment) - new Date(b.data_eveniment));
+            container.innerHTML = sorted.map(e => {
+                const isErr = (e.rezultat || '').toUpperCase() === 'ERROR' || (e.rezultat || '').toUpperCase() === 'FAIL';
+                return `
+                    <div class="timeline-item ${isErr ? 'error' : 'success'}">
+                        <div class="evt-type">${escapeHtml(e.tip_eveniment || 'event')}</div>
+                        <div class="evt-details">${escapeHtml(e.detalii || '')}</div>
+                        <div class="evt-meta">
+                            <span>${fmtDate(e.data_eveniment)}</span>
+                            <span class="evt-agent">${escapeHtml(e.agent || '')}</span>
+                            ${e.outcome_information ? `<span>${escapeHtml(e.outcome_information)}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectObject(idx) {
+            selectedIdx = idx;
+            const obj = data.obiecte[idx];
+            if (!obj) return;
+
+            document.getElementById('navDetail').style.display = 'flex';
+            document.getElementById('detailName').textContent = obj.nume_fisier || `obiect-${idx + 1}`;
+
+            const fix = getFixityStatus(obj);
+            const grid = document.getElementById('detailGrid');
+            grid.innerHTML = `
+                <div class="detail-card">
+                    <div class="label">UUID</div>
+                    <div class="value">${escapeHtml(obj.uuid || '—')}</div>
+                </div>
+                <div class="detail-card">
+                    <div class="label">Hash SHA-256</div>
+                    <div class="value hash-row">
+                        <span style="word-break:break-all;">${escapeHtml(obj.hash_sha256 || '—')}</span>
+                        <button class="copy-btn" onclick="copyText('${obj.hash_sha256 || ''}')">Copiază</button>
+                    </div>
+                </div>
+                <div class="detail-card">
+                    <div class="label">Mimetype / PUID</div>
+                    <div class="value">${escapeHtml(obj.mimetype || '—')} · ${escapeHtml(obj.puid || '—')}</div>
+                </div>
+                <div class="detail-card">
+                    <div class="label">PDF/A Status</div>
+                    <div class="value">${statusBadge(obj.pdfa_status)}</div>
+                </div>
+                <div class="detail-card">
+                    <div class="label">Fixity</div>
+                    <div class="value">${fix.ok === true ? statusBadge('OK') : fix.ok === false ? statusBadge('ERROR') : statusBadge(null)}</div>
+                </div>
+                <div class="detail-card">
+                    <div class="label">Detaliu fixity</div>
+                    <div class="value" style="font-size:11px;">${escapeHtml(fix.detail || '—')}</div>
+                </div>
+            `;
+
+            // PREMIS timeline (sorted)
+            const events = [...(obj.premisEvents || [])].sort((a, b) => new Date(a.data_eveniment) - new Date(b.data_eveniment));
+            const tl = document.getElementById('objectTimeline');
+            if (!events.length) {
+                tl.innerHTML = '<p style="color:var(--text-dim);font-size:13px;">Niciun eveniment PREMIS.</p>';
+            } else {
+                tl.innerHTML = events.map(e => {
+                    const isErr = (e.rezultat || '').toUpperCase() === 'ERROR' || (e.rezultat || '').toUpperCase() === 'FAIL';
+                    let details = e.detalii || '';
+                    // Try pretty-print if JSON-like
+                    try {
+                        if (details.trim().startsWith('{')) {
+                            details = JSON.stringify(JSON.parse(details), null, 2);
+                        }
+                    } catch {}
+                    return `
+                        <div class="timeline-item ${isErr ? 'error' : 'success'}">
+                            <div class="evt-type">${escapeHtml(e.tip_eveniment || 'event')}</div>
+                            <div class="evt-details">${escapeHtml(details)}</div>
+                            <div class="evt-meta">
+                                <span>${fmtDate(e.data_eveniment)}</span>
+                                <span class="evt-agent">${escapeHtml((e.agent || '').split('\\n')[0])}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderObjects(); // update selection highlight
+            switchView('detail');
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const panel = document.getElementById('panel-' + view);
+            if (panel) panel.classList.add('active');
+            const nav = document.querySelector(`.nav-item[data-view="${view}"]`);
+            if (nav) nav.classList.add('active');
+        }
+
+        function setFilter(f) {
+            currentFilter = f;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+            applyFilters();
+            switchView('objects');
+        }
+
+        function showErrorsOnly() {
+            setFilter('error');
+        }
+
+        function applyFilters() {
+            searchTerm = document.getElementById('searchInput').value.trim();
+            renderObjects();
+        }
+
+        function copyText(text) {
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => toast('Hash copiat')).catch(() => toast('Nu s-a putut copia', true));
+        }
+
+        function exportJSON() {
+            if (!data) return;
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `provenance_${data.sip?.id_pachet || 'export'}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast('JSON exportat');
+        }
+
+        function clearAll() {
+            data = null;
+            selectedIdx = -1;
+            document.getElementById('metaStrip').style.display = 'none';
+            document.getElementById('alertBanner').classList.remove('visible');
+            document.getElementById('emptyState').style.display = 'flex';
+            document.getElementById('btnExport').disabled = true;
+            document.getElementById('btnClear').disabled = true;
+            document.getElementById('navDetail').style.display = 'none';
+            document.getElementById('objectsBody').innerHTML = '';
+            document.getElementById('packageTimeline').innerHTML = '';
+            document.getElementById('rawJson').innerHTML = '';
+            document.getElementById('navObjCount').textContent = '0';
+            document.getElementById('navEvtCount').textContent = '0';
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('fileInput').value = '';
+            toast('Curățat');
+        }
+
+        // File input
+        document.getElementById('fileInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    loadData(parsed, file.name);
+                } catch (err) {
+                    toast('Eroare parsare JSON: ' + err.message, true);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Drag & drop
+        document.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const f = e.dataTransfer.files[0];
+            if (f && f.name.endsWith('.json')) {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    try {
+                        loadData(JSON.parse(ev.target.result), f.name);
+                    } catch (err) {
+                        toast('Eroare parsare: ' + err.message, true);
+                    }
+                };
+                reader.readAsText(f);
+            }
+        });
+
+        // Keyboard
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+                e.preventDefault();
+                document.getElementById('fileInput').click();
+            }
+        });
+
+        // Boot with sample
+        loadData(SAMPLE, 'PROVENANCE_BU-FD-00001--2026.09.04.json');
+    </script>
+</body>
+</html>
